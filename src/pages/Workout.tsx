@@ -3,12 +3,15 @@ import { Dumbbell, Play, Pause, RotateCcw, Plus, Save, Trash2, Clock } from 'luc
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store'
 import { Exercise, WorkoutPlan } from '../types'
-import { formatTime, getTodayDateString, calculateFatigueFromWorkout, getCurrentFatigueLevel } from '../utils'
+import NumberInput from '../components/NumberInput'
+import { formatTime, getTodayDateString, calculateFatigueFromWorkout, getCurrentFatigueLevel, getSuggestedWeight, shouldDeload, getConsecutiveWorkoutDays } from '../utils'
 import ExerciseSelector from '../components/ExerciseSelector'
+import { useLastTrainingData } from '../hooks/useLastTrainingData'
 
 export default function Workout() {
   const navigate = useNavigate()
-  const { addWorkoutLog, addFatigueRecord, fatigueRecords, workoutPlans, timerRunning, timerSeconds, startTimer, stopTimer, resetTimer } = useAppStore()
+  const { addWorkoutLog, addFatigueRecord, fatigueRecords, workoutLogs, workoutPlans, timerRunning, timerSeconds, startTimer, stopTimer, resetTimer } = useAppStore()
+  const getLastTrainingData = useLastTrainingData()
 
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [showAddExercise, setShowAddExercise] = useState(false)
@@ -29,7 +32,14 @@ export default function Workout() {
   }
 
   const handleSelectFromLibrary = (name: string) => {
-    setExercises([...exercises, { name, ...newExercise }])
+    const lastData = getLastTrainingData(name)
+    setExercises([...exercises, {
+      name,
+      weight: lastData?.lastWeight ?? 0,
+      sets: 3,
+      reps: lastData?.lastReps ?? 10,
+      rpe: 7,
+    }])
     setNewExercise({ weight: 0, sets: 3, reps: 10, rpe: 7 })
   }
 
@@ -42,7 +52,11 @@ export default function Workout() {
   }
 
   const handleAddDayExercises = (dayExercises: Exercise[]) => {
-    setExercises([...exercises, ...dayExercises])
+    const enriched = dayExercises.map((ex) => {
+      const lastData = getLastTrainingData(ex.name)
+      return lastData ? { ...ex, weight: lastData.lastWeight, reps: lastData.lastReps } : ex
+    })
+    setExercises([...exercises, ...enriched])
     setSelectedPlanForDays(null)
     setShowPlanSelector(false)
   }
@@ -104,6 +118,23 @@ export default function Workout() {
         </div>
       </div>
 
+      {exercises.length === 0 && (() => {
+        const currentFatigue = getCurrentFatigueLevel(fatigueRecords)
+        const consecutiveDays = getConsecutiveWorkoutDays(workoutLogs)
+        const deload = shouldDeload(currentFatigue, consecutiveDays)
+        return (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <p className="text-sm text-amber-700">
+              {deload.shouldDeload
+                ? deload.reason
+                : currentFatigue > 50
+                  ? `当前疲劳值 ${Math.round(currentFatigue)}，建议适当降低训练强度。`
+                  : '体能状态良好，开始今天的训练吧！'}
+            </p>
+          </div>
+        )
+      })()}
+
       <div className="flex gap-3 mb-6">
         <button
           onClick={() => setShowExerciseSelector(true)}
@@ -123,14 +154,35 @@ export default function Workout() {
       </div>
 
       <div className="space-y-4">
-        {exercises.map((exercise, index) => (
+        {exercises.map((exercise, index) => {
+          const suggestion = getSuggestedWeight(exercise.name, workoutLogs)
+          return (
           <div key={index} className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                   <Dumbbell className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="font-bold text-lg text-gray-800">{exercise.name}</h3>
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800">{exercise.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    {suggestion.suggestedWeight > 0 && (
+                      <span className="text-xs text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
+                        建议 {suggestion.suggestedWeight}kg
+                      </span>
+                    )}
+                    {suggestion.progress === 'plateau' && (
+                      <span className="text-xs text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
+                        平台期
+                      </span>
+                    )}
+                    {suggestion.progress === 'up' && suggestion.lastWeight > 0 && (
+                      <span className="text-xs text-green-500 bg-green-50 px-2 py-0.5 rounded-full">
+                        +2.5kg ↑
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               <button
                 onClick={() => handleRemoveExercise(index)}
@@ -143,45 +195,42 @@ export default function Workout() {
             <div className="grid grid-cols-4 gap-3">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">重量 (kg)</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={exercise.weight}
-                  onChange={(e) => updateExercise(index, { weight: Number(e.target.value) })}
+                  onChange={(v) => updateExercise(index, { weight: v })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
                 />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">组数</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={exercise.sets}
-                  onChange={(e) => updateExercise(index, { sets: Number(e.target.value) })}
+                  onChange={(v) => updateExercise(index, { sets: v })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
                 />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">次数</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={exercise.reps}
-                  onChange={(e) => updateExercise(index, { reps: Number(e.target.value) })}
+                  onChange={(v) => updateExercise(index, { reps: v })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
                 />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">RPE</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
+                <NumberInput
                   value={exercise.rpe}
-                  onChange={(e) => updateExercise(index, { rpe: Math.min(10, Math.max(1, Number(e.target.value))) })}
+                  min={1}
+                  max={10}
+                  onChange={(v) => updateExercise(index, { rpe: Math.min(10, Math.max(1, v)) })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
                 />
               </div>
             </div>
           </div>
-        ))}
+        )
+      })}
 
         {exercises.length === 0 && (
           <div className="text-center py-12">
@@ -238,39 +287,35 @@ export default function Workout() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">重量 (kg)</label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={newExercise.weight}
-                      onChange={(e) => setNewExercise({ ...newExercise, weight: Number(e.target.value) })}
+                      onChange={(v) => setNewExercise({ ...newExercise, weight: v })}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">组数</label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={newExercise.sets}
-                      onChange={(e) => setNewExercise({ ...newExercise, sets: Number(e.target.value) })}
+                      onChange={(v) => setNewExercise({ ...newExercise, sets: v })}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">次数</label>
-                    <input
-                      type="number"
+                    <NumberInput
                       value={newExercise.reps}
-                      onChange={(e) => setNewExercise({ ...newExercise, reps: Number(e.target.value) })}
+                      onChange={(v) => setNewExercise({ ...newExercise, reps: v })}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">RPE (1-10)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="10"
+                    <NumberInput
                       value={newExercise.rpe}
-                      onChange={(e) => setNewExercise({ ...newExercise, rpe: Math.min(10, Math.max(1, Number(e.target.value))) })}
+                      min={1}
+                      max={10}
+                      onChange={(v) => setNewExercise({ ...newExercise, rpe: Math.min(10, Math.max(1, v)) })}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                     />
                   </div>

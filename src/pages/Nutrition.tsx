@@ -4,6 +4,7 @@ import { useAppStore } from '../store'
 import { PRESET_FOODS } from '../constants'
 import { FoodItem } from '../types'
 import { getTodayDateString } from '../utils'
+import NumberInput from '../components/NumberInput'
 
 export default function Nutrition() {
   const { profile, foodLogs, addFoodLog, updateFoodLog } = useAppStore()
@@ -204,37 +205,33 @@ export default function Nutrition() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">热量 (千卡)</label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={customFood.calories}
-                        onChange={(e) => setCustomFood({ ...customFood, calories: Number(e.target.value) })}
+                        onChange={(v) => setCustomFood({ ...customFood, calories: v })}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">蛋白质 (g)</label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={customFood.protein}
-                        onChange={(e) => setCustomFood({ ...customFood, protein: Number(e.target.value) })}
+                        onChange={(v) => setCustomFood({ ...customFood, protein: v })}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">碳水 (g)</label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={customFood.carbs}
-                        onChange={(e) => setCustomFood({ ...customFood, carbs: Number(e.target.value) })}
+                        onChange={(v) => setCustomFood({ ...customFood, carbs: v })}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">脂肪 (g)</label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={customFood.fat}
-                        onChange={(e) => setCustomFood({ ...customFood, fat: Number(e.target.value) })}
+                        onChange={(v) => setCustomFood({ ...customFood, fat: v })}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                       />
                     </div>

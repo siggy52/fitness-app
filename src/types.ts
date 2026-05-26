@@ -82,6 +82,23 @@ export type MuscleGroup =
   | 'lower-back'
   | 'full-body'
 
+export type AnimationType =
+  | 'push'
+  | 'pull'
+  | 'squat'
+  | 'curl'
+  | 'extend'
+  | 'static'
+  | 'cardio'
+  | 'stretch'
+
+export interface AnimationConfig {
+  armAngle?: number
+  bodyAngle?: number
+  hasEquipment?: boolean
+  equipmentType?: 'barbell' | 'dumbbell' | 'machine' | 'bodyweight' | 'cable'
+}
+
 export interface ExerciseDefinition {
   id: string
   name: string
@@ -94,6 +111,8 @@ export interface ExerciseDefinition {
   commonMistakes: string[]
   isCustom: boolean
   createdAt: string
+  animationType: AnimationType
+  animationConfig?: AnimationConfig
 }
 
 export interface PersonalRecord {

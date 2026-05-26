@@ -4,6 +4,7 @@ import { useAppStore } from '../store'
 import { MUSCLE_GROUP_LABELS, MUSCLE_GROUP_COLORS, CATEGORY_LABELS } from '../data/exercises'
 import { useState } from 'react'
 import { ExerciseDefinition, MuscleGroup } from '../types'
+import ExerciseAnimation from '../components/ExerciseAnimation'
 
 function DifficultyDots({ level }: { level: number }) {
   return (
@@ -106,6 +107,9 @@ export default function ExerciseDetail() {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* 动画演示 */}
+        <ExerciseAnimation exercise={exercise} size={280} />
+
         {stats && (stats.personalRecord.maxWeight > 0 || stats.totalSets > 0) && (
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">

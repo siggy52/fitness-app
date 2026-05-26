@@ -4,6 +4,7 @@ import { useAppStore } from '../store'
 import { PRESET_PLANS } from '../constants'
 import { WorkoutPlan, DayExercises } from '../types'
 import ExerciseSelector from '../components/ExerciseSelector'
+import NumberInput from '../components/NumberInput'
 
 const DAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
@@ -415,33 +416,29 @@ export default function Plan() {
                                   <BookOpen className="w-4 h-4" />
                                 </button>
                               </div>
-                              <input
-                                type="number"
+                              <NumberInput
                                 value={newExerciseWeight}
-                                onChange={(e) => setNewExerciseWeight(Number(e.target.value))}
+                                onChange={setNewExerciseWeight}
                                 placeholder="重量"
                                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-center"
                               />
-                              <input
-                                type="number"
+                              <NumberInput
                                 value={newExerciseSets}
-                                onChange={(e) => setNewExerciseSets(Number(e.target.value))}
+                                onChange={setNewExerciseSets}
                                 placeholder="组数"
                                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-center"
                               />
-                              <input
-                                type="number"
+                              <NumberInput
                                 value={newExerciseReps}
-                                onChange={(e) => setNewExerciseReps(Number(e.target.value))}
+                                onChange={setNewExerciseReps}
                                 placeholder="次数"
                                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-center"
                               />
-                              <input
-                                type="number"
-                                min="1"
-                                max="10"
+                              <NumberInput
                                 value={newExerciseRpe}
-                                onChange={(e) => setNewExerciseRpe(Math.min(10, Math.max(1, Number(e.target.value))))}
+                                min={1}
+                                max={10}
+                                onChange={(v) => setNewExerciseRpe(Math.min(10, Math.max(1, v)))}
                                 placeholder="RPE"
                                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-center"
                               />

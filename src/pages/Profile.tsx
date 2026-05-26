@@ -3,6 +3,7 @@ import { User, Save, Check, Activity, Flame, Target } from 'lucide-react'
 import { useAppStore } from '../store'
 import { calculateBMR } from '../utils'
 import { Profile as ProfileType } from '../types'
+import NumberInput from '../components/NumberInput'
 
 export default function Profile() {
   const { profile, setProfile, workoutLogs, foodLogs } = useAppStore()
@@ -39,10 +40,9 @@ export default function Profile() {
           <div className="bg-white rounded-2xl p-6 shadow-lg space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">身高 (cm)</label>
-              <input
-                type="number"
+              <NumberInput
                 value={formData.height}
-                onChange={(e) => setFormData({ ...formData, height: Number(e.target.value) })}
+                onChange={(v) => setFormData({ ...formData, height: v })}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="170"
               />
@@ -50,10 +50,9 @@ export default function Profile() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">体重 (kg)</label>
-              <input
-                type="number"
+              <NumberInput
                 value={formData.weight}
-                onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
+                onChange={(v) => setFormData({ ...formData, weight: v })}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="70"
               />
@@ -61,10 +60,9 @@ export default function Profile() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">年龄</label>
-              <input
-                type="number"
+              <NumberInput
                 value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: Number(e.target.value) })}
+                onChange={(v) => setFormData({ ...formData, age: v })}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="25"
               />
@@ -142,28 +140,25 @@ export default function Profile() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">身高 (cm)</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={formData.height}
-                  onChange={(e) => setFormData({ ...formData, height: Number(e.target.value) })}
+                  onChange={(v) => setFormData({ ...formData, height: v })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">体重 (kg)</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={formData.weight}
-                  onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
+                  onChange={(v) => setFormData({ ...formData, weight: v })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">年龄</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: Number(e.target.value) })}
+                  onChange={(v) => setFormData({ ...formData, age: v })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg"
                 />
               </div>

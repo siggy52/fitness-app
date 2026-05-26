@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Calendar, Dumbbell, Apple, ChevronDown, ChevronUp } from 'lucide-react'
+import { Calendar, Dumbbell, Apple, ChevronDown, ChevronUp, Download } from 'lucide-react'
 import { useAppStore } from '../store'
-import { formatDate } from '../utils'
+import { formatDate, exportWorkoutLogsToJson, exportWorkoutLogsToCsv, getTodayDateString } from '../utils'
 
 type HistoryTab = 'all' | 'workouts' | 'nutrition'
 
@@ -9,6 +9,25 @@ export default function History() {
   const { workoutLogs, foodLogs } = useAppStore()
   const [activeTab, setActiveTab] = useState<HistoryTab>('all')
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
+
+  const todayStr = getTodayDateString()
+
+  const handleExport = (format: 'json' | 'csv') => {
+    const content = format === 'json'
+      ? exportWorkoutLogsToJson(workoutLogs)
+      : exportWorkoutLogsToCsv(workoutLogs)
+    const mimeType = format === 'json' ? 'application/json' : 'text/csv'
+    const extension = format
+    const blob = new Blob([content], { type: mimeType })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `训练记录_${todayStr}.${extension}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   const allDates = Array.from(
     new Set([
@@ -47,7 +66,25 @@ export default function History() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">历史记录</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">历史记录</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleExport('json')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            JSON
+          </button>
+          <button
+            onClick={() => handleExport('csv')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            CSV
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4 text-center shadow-sm">

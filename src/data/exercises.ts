@@ -27,7 +27,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '手腕过度后翻导致受伤'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell' }
   },
   {
     id: 'preset-chest-002',
@@ -54,7 +56,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '腰部过度拱起'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell' }
   },
   {
     id: 'preset-chest-003',
@@ -81,7 +85,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '没有控制下放速度'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell' }
   },
   {
     id: 'preset-chest-004',
@@ -108,7 +114,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩借力'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell' }
   },
   {
     id: 'preset-chest-005',
@@ -134,7 +142,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '手肘过度外展'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-chest-006',
@@ -161,7 +171,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '没有充分拉伸胸部'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'cable' }
   },
   {
     id: 'preset-chest-007',
@@ -188,7 +200,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作过快失去控制'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell' }
   },
   {
     id: 'preset-chest-008',
@@ -215,7 +229,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作幅度不足'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'machine' }
   },
 
   // 背部 (8个)
@@ -244,7 +260,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩导致斜方肌代偿'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-back-002',
@@ -271,7 +289,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩借力'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell' }
   },
   {
     id: 'preset-back-003',
@@ -298,7 +318,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作过快失去控制'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell' }
   },
   {
     id: 'preset-back-004',
@@ -325,7 +347,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'machine' }
   },
   {
     id: 'preset-back-005',
@@ -352,7 +376,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '伸膝过早导致臀部过高'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell' }
   },
   {
     id: 'preset-back-006',
@@ -379,7 +405,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'cable' }
   },
   {
     id: 'preset-back-007',
@@ -406,7 +434,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '用手臂发力'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'machine' }
   },
   {
     id: 'preset-back-008',
@@ -432,7 +462,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '没有控制下放'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'static',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
 
   // 腿部 (10个)
@@ -461,7 +493,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '背部弓起'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'squat',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-legs-002',
@@ -488,7 +522,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '手腕过度后伸'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'squat',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell' }
   },
   {
     id: 'preset-legs-003',
@@ -515,7 +551,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '重量过大导致动作变形'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'squat',
+    animationConfig: { hasEquipment: true, equipmentType: 'machine' }
   },
   {
     id: 'preset-legs-004',
@@ -542,7 +580,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '没有完全伸直膝盖'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'curl',
+    animationConfig: { hasEquipment: true, equipmentType: 'machine' }
   },
   {
     id: 'preset-legs-005',
@@ -569,7 +609,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '借助惯性摆动'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'extend',
+    animationConfig: { hasEquipment: true, equipmentType: 'machine' }
   },
   {
     id: 'preset-legs-006',
@@ -596,7 +638,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '杠铃远离身体'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell' }
   },
   {
     id: 'preset-legs-007',
@@ -623,7 +667,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '膝盖内扣或外展'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'squat',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-legs-008',
@@ -650,7 +696,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '失去平衡'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'squat',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-legs-009',
@@ -677,7 +725,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作过快'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'static',
+    animationConfig: { hasEquipment: true, equipmentType: 'machine' }
   },
   {
     id: 'preset-legs-010',
@@ -704,7 +754,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '步幅过小'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'squat',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
 
   // 肩部 (6个)
@@ -733,7 +785,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '杠铃轨迹过于垂直导致碰撞'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell', bodyAngle: -90 }
   },
   {
     id: 'preset-shoulders-002',
@@ -760,7 +814,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩借力'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell', bodyAngle: -90 }
   },
   {
     id: 'preset-shoulders-003',
@@ -787,7 +843,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '抬得过高'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'curl',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell' }
   },
   {
     id: 'preset-shoulders-004',
@@ -814,7 +872,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'curl',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell' }
   },
   {
     id: 'preset-shoulders-005',
@@ -841,7 +901,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '身体后倾借力'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'cable' }
   },
   {
     id: 'preset-shoulders-006',
@@ -868,7 +930,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '幅度不足'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'pull',
+    animationConfig: { hasEquipment: true, equipmentType: 'machine' }
   },
 
   // 手臂 - 二头 (3个)
@@ -897,7 +961,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '没有完全伸直手臂'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'curl',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell' }
   },
   {
     id: 'preset-biceps-002',
@@ -924,7 +990,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作过快'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'curl',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell' }
   },
   {
     id: 'preset-biceps-003',
@@ -951,7 +1019,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'curl',
+    animationConfig: { hasEquipment: true, equipmentType: 'dumbbell' }
   },
 
   // 手臂 - 三头 (3个)
@@ -980,7 +1050,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作过快'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'extend',
+    animationConfig: { hasEquipment: true, equipmentType: 'cable' }
   },
   {
     id: 'preset-triceps-002',
@@ -1007,7 +1079,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '下放位置过高'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: true, equipmentType: 'barbell' }
   },
   {
     id: 'preset-triceps-003',
@@ -1034,7 +1108,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作过快'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'push',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
 
   // 核心 (6个)
@@ -1063,7 +1139,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作过快借助惯性'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'curl',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-core-002',
@@ -1090,7 +1168,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '憋气'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'static',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-core-003',
@@ -1117,7 +1197,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '背部弓起'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'static',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-core-004',
@@ -1144,7 +1226,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '耸肩'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'static',
+    animationConfig: { hasEquipment: true, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-core-005',
@@ -1171,7 +1255,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '手脚接触地面'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'static',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-core-006',
@@ -1198,7 +1284,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '动作过慢'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'cardio',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
 
   // 有氧 (6个)
@@ -1227,7 +1315,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '俯卧撑姿势不标准'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'cardio',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-cardio-002',
@@ -1254,7 +1344,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '跳跃过高'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'cardio',
+    animationConfig: { hasEquipment: true, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-cardio-003',
@@ -1281,7 +1373,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '落地过重'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'cardio',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-cardio-004',
@@ -1308,7 +1402,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '节奏过慢'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'cardio',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-cardio-005',
@@ -1335,7 +1431,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '下蹲深度不足'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'squat',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-cardio-006',
@@ -1362,7 +1460,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '节奏不稳定'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'cardio',
+    animationConfig: { hasEquipment: true, equipmentType: 'bodyweight' }
   },
 
   // 拉伸 (10个)
@@ -1391,7 +1491,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '手肘位置过高或过低'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-002',
@@ -1418,7 +1520,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '臀部离开脚跟'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-003',
@@ -1445,7 +1549,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '强迫拉伸'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-004',
@@ -1472,7 +1578,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '拉伸过度'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-005',
@@ -1499,7 +1607,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '头部离开地面'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-006',
@@ -1526,7 +1636,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '憋气'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-007',
@@ -1553,7 +1665,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '身体前倾不足'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-008',
@@ -1580,7 +1694,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '前膝过度前移'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-009',
@@ -1607,7 +1723,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '手臂过于用力'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   },
   {
     id: 'preset-stretch-010',
@@ -1634,7 +1752,9 @@ export const PRESET_EXERCISES: ExerciseDefinition[] = [
       '憋气'
     ],
     isCustom: false,
-    createdAt: '2024-01-01'
+    createdAt: '2024-01-01',
+    animationType: 'stretch',
+    animationConfig: { hasEquipment: false, equipmentType: 'bodyweight' }
   }
 ]
 
