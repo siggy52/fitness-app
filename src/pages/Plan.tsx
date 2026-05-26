@@ -416,32 +416,43 @@ export default function Plan() {
                                   <BookOpen className="w-4 h-4" />
                                 </button>
                               </div>
-                              <NumberInput
-                                value={newExerciseWeight}
-                                onChange={setNewExerciseWeight}
-                                placeholder="重量"
-                                className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-center"
-                              />
-                              <NumberInput
-                                value={newExerciseSets}
-                                onChange={setNewExerciseSets}
-                                placeholder="组数"
-                                className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-center"
-                              />
-                              <NumberInput
-                                value={newExerciseReps}
-                                onChange={setNewExerciseReps}
-                                placeholder="次数"
-                                className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-center"
-                              />
-                              <NumberInput
-                                value={newExerciseRpe}
-                                min={1}
-                                max={10}
-                                onChange={(v) => setNewExerciseRpe(Math.min(10, Math.max(1, v)))}
-                                placeholder="RPE"
-                                className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-center"
-                              />
+                              <div>
+                                <label className="block text-[10px] text-gray-500 mb-0.5 text-center">重量(kg)</label>
+                                <NumberInput
+                                  value={newExerciseWeight}
+                                  onChange={setNewExerciseWeight}
+                                  min={0}
+                                  className="w-full px-2 py-2 border border-gray-200 rounded-lg text-sm text-center"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-gray-500 mb-0.5 text-center">组数</label>
+                                <NumberInput
+                                  value={newExerciseSets}
+                                  onChange={setNewExerciseSets}
+                                  min={1}
+                                  className="w-full px-2 py-2 border border-gray-200 rounded-lg text-sm text-center"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-gray-500 mb-0.5 text-center">次数</label>
+                                <NumberInput
+                                  value={newExerciseReps}
+                                  onChange={setNewExerciseReps}
+                                  min={1}
+                                  className="w-full px-2 py-2 border border-gray-200 rounded-lg text-sm text-center"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-gray-500 mb-0.5 text-center">RPE</label>
+                                <NumberInput
+                                  value={newExerciseRpe}
+                                  min={1}
+                                  max={10}
+                                  onChange={(v) => setNewExerciseRpe(Math.min(10, Math.max(1, v)))}
+                                  className="w-full px-2 py-2 border border-gray-200 rounded-lg text-sm text-center"
+                                />
+                              </div>
                             </div>
                             <button
                               onClick={handleAddExerciseToDay}

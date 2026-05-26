@@ -198,6 +198,7 @@ export default function Workout() {
                 <NumberInput
                   value={exercise.weight}
                   onChange={(v) => updateExercise(index, { weight: v })}
+                  min={0}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
                 />
               </div>
@@ -206,6 +207,7 @@ export default function Workout() {
                 <NumberInput
                   value={exercise.sets}
                   onChange={(v) => updateExercise(index, { sets: v })}
+                  min={1}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
                 />
               </div>
@@ -214,6 +216,7 @@ export default function Workout() {
                 <NumberInput
                   value={exercise.reps}
                   onChange={(v) => updateExercise(index, { reps: v })}
+                  min={1}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
                 />
               </div>
@@ -290,6 +293,7 @@ export default function Workout() {
                     <NumberInput
                       value={newExercise.weight}
                       onChange={(v) => setNewExercise({ ...newExercise, weight: v })}
+                      min={0}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                     />
                   </div>
@@ -298,6 +302,7 @@ export default function Workout() {
                     <NumberInput
                       value={newExercise.sets}
                       onChange={(v) => setNewExercise({ ...newExercise, sets: v })}
+                      min={1}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                     />
                   </div>
@@ -306,6 +311,7 @@ export default function Workout() {
                     <NumberInput
                       value={newExercise.reps}
                       onChange={(v) => setNewExercise({ ...newExercise, reps: v })}
+                      min={1}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                     />
                   </div>
