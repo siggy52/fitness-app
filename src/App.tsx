@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
 import FloatingTimer from './components/FloatingTimer'
+import ErrorBoundary from './components/ErrorBoundary'
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Plan from './pages/Plan'
@@ -29,8 +30,9 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50 pb-20">
-        <Routes>
+      <ErrorBoundary>
+        <div className="min-h-screen bg-gray-50 pb-20">
+          <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -45,6 +47,7 @@ function App() {
         <FloatingTimer />
         <BottomNav />
       </div>
+      </ErrorBoundary>
     </BrowserRouter>
   )
 }
