@@ -1,0 +1,16 @@
+{
+  "name": "健身助手",
+  "short_name": "健身",
+  "description": "健身训练记录与计划管理",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
