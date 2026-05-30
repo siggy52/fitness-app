@@ -1,0 +1,354 @@
+{
+  "timestamp": "2026-05-29T15:31:13.225Z",
+  "environment": {
+    "browser": "Chromium",
+    "viewport": "390x844 (移动端)",
+    "baseUrl": "http://localhost:5173",
+    "mode": "headless"
+  },
+  "summary": {
+    "total": 22,
+    "passed": 22,
+    "failed": 0,
+    "passRate": "100.0%"
+  },
+  "details": [
+    {
+      "name": "首页加载",
+      "category": "首页",
+      "passed": true,
+      "duration": "659ms",
+      "error": null
+    },
+    {
+      "name": "首页标题可见",
+      "category": "首页",
+      "passed": true,
+      "duration": "870ms",
+      "error": null
+    },
+    {
+      "name": "Quick Actions 按钮可见",
+      "category": "首页",
+      "passed": true,
+      "duration": "1098ms",
+      "error": null
+    },
+    {
+      "name": "动作库按钮导航",
+      "category": "首页",
+      "passed": true,
+      "duration": "1714ms",
+      "error": null
+    },
+    {
+      "name": "历史按钮导航",
+      "category": "首页",
+      "passed": true,
+      "duration": "1652ms",
+      "error": null
+    },
+    {
+      "name": "统计按钮导航",
+      "category": "首页",
+      "passed": true,
+      "duration": "1654ms",
+      "error": null
+    },
+    {
+      "name": "动作库页面加载",
+      "category": "动作库",
+      "passed": true,
+      "duration": "1087ms",
+      "error": null
+    },
+    {
+      "name": "搜索功能",
+      "category": "动作库",
+      "passed": true,
+      "duration": "1515ms",
+      "error": null
+    },
+    {
+      "name": "分类筛选-胸部",
+      "category": "动作库",
+      "passed": true,
+      "duration": "1145ms",
+      "error": null
+    },
+    {
+      "name": "分类筛选-背部",
+      "category": "动作库",
+      "passed": true,
+      "duration": "556ms",
+      "error": null
+    },
+    {
+      "name": "分类筛选-手臂",
+      "category": "动作库",
+      "passed": true,
+      "duration": "552ms",
+      "error": null
+    },
+    {
+      "name": "点击动作进入详情",
+      "category": "动作详情",
+      "passed": true,
+      "duration": "1871ms",
+      "error": null
+    },
+    {
+      "name": "返回按钮可点击",
+      "category": "动作详情",
+      "passed": true,
+      "duration": "2724ms",
+      "error": null
+    },
+    {
+      "name": "运动页面加载",
+      "category": "运动页面",
+      "passed": true,
+      "duration": "2840ms",
+      "error": null
+    },
+    {
+      "name": "添加动作按钮",
+      "category": "运动页面",
+      "passed": true,
+      "duration": "1105ms",
+      "error": null
+    },
+    {
+      "name": "打开动作选择器",
+      "category": "运动页面",
+      "passed": true,
+      "duration": "1344ms",
+      "error": null
+    },
+    {
+      "name": "从计划添加按钮",
+      "category": "运动页面",
+      "passed": true,
+      "duration": "1118ms",
+      "error": null
+    },
+    {
+      "name": "多个页面路由可访问",
+      "category": "导航",
+      "passed": true,
+      "duration": "4333ms",
+      "error": null
+    },
+    {
+      "name": "404页面不崩溃",
+      "category": "导航",
+      "passed": true,
+      "duration": "1050ms",
+      "error": null
+    },
+    {
+      "name": "返回按钮导航正确",
+      "category": "导航",
+      "passed": true,
+      "duration": "888ms",
+      "error": null
+    },
+    {
+      "name": "各页面截图",
+      "category": "UI一致性",
+      "passed": true,
+      "duration": "4357ms",
+      "error": null
+    },
+    {
+      "name": "页面无控制台错误",
+      "category": "控制台",
+      "passed": true,
+      "duration": "2730ms",
+      "error": null
+    }
+  ],
+  "categories": {
+    "首页": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "items": [
+        {
+          "name": "首页加载",
+          "passed": true,
+          "duration": "659ms",
+          "error": null
+        },
+        {
+          "name": "首页标题可见",
+          "passed": true,
+          "duration": "870ms",
+          "error": null
+        },
+        {
+          "name": "Quick Actions 按钮可见",
+          "passed": true,
+          "duration": "1098ms",
+          "error": null
+        },
+        {
+          "name": "动作库按钮导航",
+          "passed": true,
+          "duration": "1714ms",
+          "error": null
+        },
+        {
+          "name": "历史按钮导航",
+          "passed": true,
+          "duration": "1652ms",
+          "error": null
+        },
+        {
+          "name": "统计按钮导航",
+          "passed": true,
+          "duration": "1654ms",
+          "error": null
+        }
+      ]
+    },
+    "动作库": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "items": [
+        {
+          "name": "动作库页面加载",
+          "passed": true,
+          "duration": "1087ms",
+          "error": null
+        },
+        {
+          "name": "搜索功能",
+          "passed": true,
+          "duration": "1515ms",
+          "error": null
+        },
+        {
+          "name": "分类筛选-胸部",
+          "passed": true,
+          "duration": "1145ms",
+          "error": null
+        },
+        {
+          "name": "分类筛选-背部",
+          "passed": true,
+          "duration": "556ms",
+          "error": null
+        },
+        {
+          "name": "分类筛选-手臂",
+          "passed": true,
+          "duration": "552ms",
+          "error": null
+        }
+      ]
+    },
+    "动作详情": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "items": [
+        {
+          "name": "点击动作进入详情",
+          "passed": true,
+          "duration": "1871ms",
+          "error": null
+        },
+        {
+          "name": "返回按钮可点击",
+          "passed": true,
+          "duration": "2724ms",
+          "error": null
+        }
+      ]
+    },
+    "运动页面": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "items": [
+        {
+          "name": "运动页面加载",
+          "passed": true,
+          "duration": "2840ms",
+          "error": null
+        },
+        {
+          "name": "添加动作按钮",
+          "passed": true,
+          "duration": "1105ms",
+          "error": null
+        },
+        {
+          "name": "打开动作选择器",
+          "passed": true,
+          "duration": "1344ms",
+          "error": null
+        },
+        {
+          "name": "从计划添加按钮",
+          "passed": true,
+          "duration": "1118ms",
+          "error": null
+        }
+      ]
+    },
+    "导航": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "items": [
+        {
+          "name": "多个页面路由可访问",
+          "passed": true,
+          "duration": "4333ms",
+          "error": null
+        },
+        {
+          "name": "404页面不崩溃",
+          "passed": true,
+          "duration": "1050ms",
+          "error": null
+        },
+        {
+          "name": "返回按钮导航正确",
+          "passed": true,
+          "duration": "888ms",
+          "error": null
+        }
+      ]
+    },
+    "UI一致性": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "items": [
+        {
+          "name": "各页面截图",
+          "passed": true,
+          "duration": "4357ms",
+          "error": null
+        }
+      ]
+    },
+    "控制台": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "items": [
+        {
+          "name": "页面无控制台错误",
+          "passed": true,
+          "duration": "2730ms",
+          "error": null
+        }
+      ]
+    }
+  }
+}

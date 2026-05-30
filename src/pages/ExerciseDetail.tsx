@@ -1,368 +1,292 @@
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Trophy, Trash2, Edit2, AlertTriangle, Lightbulb, ListOrdered, Info } from 'lucide-react'
-import { useAppStore } from '../store'
-import { MUSCLE_GROUP_LABELS, MUSCLE_GROUP_COLORS, CATEGORY_LABELS } from '../data/exercises'
 import { useState } from 'react'
-import { ExerciseDefinition, MuscleGroup } from '../types'
-import ExerciseAnimation from '../components/ExerciseAnimation'
-
-function DifficultyDots({ level }: { level: number }) {
-  return (
-    <div className="flex gap-1">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div
-          key={i}
-          className={`w-2 h-2 rounded-full ${
-            i < level ? 'bg-orange-400' : 'bg-gray-200'
-          }`}
-        />
-      ))}
-    </div>
-  )
-}
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Heart, Play, Star, Clock, Dumbbell, AlertTriangle, CheckCircle, Pencil, Trash2 } from 'lucide-react'
+import { useAppStore } from '../store'
+import { MUSCLE_GROUPS, DIFFICULTY_LEVELS } from '../constants'
+import { ConfirmModal } from '../components/ConfirmModal'
 
 export default function ExerciseDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { getExerciseById, getExerciseStats, deleteCustomExercise, updateCustomExercise } = useAppStore()
+  const { getExerciseById, getExerciseStats, updateCustomExercise, deleteCustomExercise } = useAppStore()
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [editData, setEditData] = useState({
+    name: '',
+    description: '',
+    steps: '',
+    tips: '',
+  })
 
-  const exercise = id ? getExerciseById(id) : undefined
+  const exercise = getExerciseById(id || '')
   const stats = exercise ? getExerciseStats(exercise.name) : null
 
   if (!exercise) {
     return (
-      <div className="p-4">
-        <div className="text-center py-12">
-          <AlertTriangle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-600">动作未找到</h3>
-        </div>
-      </div>
-    )
-  }
-
-  const primaryMuscle = exercise.muscleGroups[0]
-  const colorClass = MUSCLE_GROUP_COLORS[primaryMuscle] || 'bg-gray-500'
-
-  const handleDelete = () => {
-    if (confirm('确定要删除这个自定义动作吗？')) {
-      deleteCustomExercise(exercise.id)
-      navigate('/exercises')
-    }
-  }
-
-  if (isEditing) {
-    return <EditExerciseModal exercise={exercise} onClose={() => setIsEditing(false)} onSave={(updates) => {
-      updateCustomExercise(exercise.id, updates)
-      setIsEditing(false)
-    }} />
-  }
-
-  return (
-    <div className="pb-24">
-      <div className={`${colorClass} p-4 text-white`}>
-        <div className="flex items-center justify-between mb-4">
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-dark-muted mb-4">动作未找到</p>
           <button
             onClick={() => navigate('/exercises')}
-            className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-all"
+            className="bg-neon text-dark-bg px-6 py-3 rounded-[32px] font-bold"
           >
-            <ArrowLeft className="w-5 h-5" />
+            返回动作库
           </button>
-          {exercise.isCustom && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-all"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleDelete}
-                className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-all"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        <h1 className="text-2xl font-bold mb-2">{exercise.name}</h1>
-        <div className="flex items-center gap-3 mb-3">
-          <DifficultyDots level={exercise.difficulty} />
-          <span className="text-sm opacity-90">{CATEGORY_LABELS[exercise.category]}</span>
-          {exercise.isCustom && (
-            <span className="text-xs bg-white/30 px-2 py-0.5 rounded-full">自定义</span>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {exercise.muscleGroups.map((mg) => (
-            <span
-              key={mg}
-              className="text-xs bg-white/20 px-2 py-1 rounded-full"
-            >
-              {MUSCLE_GROUP_LABELS[mg] || mg}
-            </span>
-          ))}
         </div>
       </div>
-
-      <div className="p-4 space-y-4">
-        {/* 动画演示 */}
-        <ExerciseAnimation exercise={exercise} size={280} />
-
-        {stats && (stats.personalRecord.maxWeight > 0 || stats.totalSets > 0) && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <Trophy className="w-5 h-5 text-yellow-500" />
-              <h2 className="font-semibold text-gray-800">我的记录</h2>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-800">{stats.personalRecord.maxWeight}</div>
-                <div className="text-xs text-gray-500">最大重量(kg)</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-800">{stats.totalSets}</div>
-                <div className="text-xs text-gray-500">总组数</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-800">{stats.lastTrained ? new Date(stats.lastTrained).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }) : '-'}</div>
-                <div className="text-xs text-gray-500">最近训练</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <Info className="w-5 h-5 text-blue-500" />
-            <h2 className="font-semibold text-gray-800">动作描述</h2>
-          </div>
-          <p className="text-sm text-gray-600 leading-relaxed">{exercise.description}</p>
-        </div>
-
-        {exercise.steps.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <ListOrdered className="w-5 h-5 text-green-500" />
-              <h2 className="font-semibold text-gray-800">执行步骤</h2>
-            </div>
-            <div className="space-y-3">
-              {exercise.steps.map((step, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {index + 1}
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed">{step}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {exercise.tips.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <Lightbulb className="w-5 h-5 text-yellow-500" />
-              <h2 className="font-semibold text-gray-800">动作要点</h2>
-            </div>
-            <div className="space-y-2">
-              {exercise.tips.map((tip, index) => (
-                <div key={index} className="flex gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-gray-600">{tip}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {exercise.commonMistakes.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              <h2 className="font-semibold text-gray-800">常见错误</h2>
-            </div>
-            <div className="space-y-2">
-              {exercise.commonMistakes.map((mistake, index) => (
-                <div key={index} className="flex gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-gray-600">{mistake}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function EditExerciseModal({ exercise, onClose, onSave }: {
-  exercise: ExerciseDefinition
-  onClose: () => void
-  onSave: (updates: Partial<ExerciseDefinition>) => void
-}) {
-  const [name, setName] = useState(exercise.name)
-  const [muscleGroups, setMuscleGroups] = useState<MuscleGroup[]>(exercise.muscleGroups)
-  const [category, setCategory] = useState(exercise.category)
-  const [difficulty, setDifficulty] = useState(exercise.difficulty)
-  const [description, setDescription] = useState(exercise.description)
-  const [steps, setSteps] = useState(exercise.steps.join('\n'))
-  const [tips, setTips] = useState(exercise.tips.join('\n'))
-  const [commonMistakes, setCommonMistakes] = useState(exercise.commonMistakes.join('\n'))
-
-  const availableMuscleGroups: MuscleGroup[] = [
-    'chest', 'back', 'shoulders', 'biceps', 'triceps',
-    'legs', 'glutes', 'hamstrings', 'quadriceps', 'calves',
-    'core', 'abs', 'lower-back', 'full-body'
-  ]
-
-  const toggleMuscleGroup = (mg: MuscleGroup) => {
-    setMuscleGroups((prev) =>
-      prev.includes(mg) ? prev.filter((g) => g !== mg) : [...prev, mg]
     )
   }
 
-  const handleSubmit = () => {
-    if (!name.trim() || muscleGroups.length === 0) return
-    onSave({
-      name: name.trim(),
-      muscleGroups,
-      category,
-      difficulty,
-      description: description.trim(),
-      steps: steps.split('\n').filter((s) => s.trim()),
-      tips: tips.split('\n').filter((s) => s.trim()),
-      commonMistakes: commonMistakes.split('\n').filter((s) => s.trim()),
+  const muscleGroup = MUSCLE_GROUPS.find((g) => exercise.muscleGroups.includes(g.id))
+  const difficulty = DIFFICULTY_LEVELS[exercise.difficulty - 1]
+
+  const muscleGroupName = muscleGroup?.name || exercise.muscleGroups[0] || '其他'
+
+  const handleStartEdit = () => {
+    setEditData({
+      name: exercise.name,
+      description: exercise.description,
+      steps: exercise.steps.join('\n'),
+      tips: exercise.tips.join('\n'),
     })
+    setIsEditing(true)
+  }
+
+  const handleSaveEdit = () => {
+    if (!editData.name.trim()) return
+    updateCustomExercise(exercise.id, {
+      name: editData.name,
+      description: editData.description || '暂无描述',
+      steps: editData.steps ? editData.steps.split('\n').filter(s => s.trim()) : [],
+      tips: editData.tips ? editData.tips.split('\n').filter(s => s.trim()) : [],
+    })
+    setIsEditing(false)
+  }
+
+  const handleDelete = () => {
+    deleteCustomExercise(exercise.id)
+    navigate('/exercises')
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:w-96 max-h-[85vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">编辑动作</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              ✕
-            </button>
-          </div>
+    <div className="min-h-screen bg-dark-bg">
+      {/* Image Section - 55% height */}
+      <div className="relative h-[55vh]">
+        <img
+          src={exercise.image || `https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=600&fit=crop`}
+          alt={exercise.name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">动作名称 *</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">目标肌群 *</label>
-              <div className="flex flex-wrap gap-2">
-                {availableMuscleGroups.map((mg) => (
-                  <button
-                    key={mg}
-                    onClick={() => toggleMuscleGroup(mg)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      muscleGroups.includes(mg)
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {MUSCLE_GROUP_LABELS[mg] || mg}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">动作类型</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as ExerciseDefinition['category'])}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="free-weight">自由重量</option>
-                <option value="machine">器械</option>
-                <option value="bodyweight">自重</option>
-                <option value="cardio">有氧</option>
-                <option value="stretching">拉伸</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">难度等级</label>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setDifficulty(level as 1 | 2 | 3 | 4 | 5)}
-                    className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
-                      difficulty === level
-                        ? 'bg-orange-400 text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">动作描述</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">执行步骤（每行一步）</label>
-              <textarea
-                value={steps}
-                onChange={(e) => setSteps(e.target.value)}
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">动作要点（每行一条）</label>
-              <textarea
-                value={tips}
-                onChange={(e) => setTips(e.target.value)}
-                rows={2}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">常见错误（每行一条）</label>
-              <textarea
-                value={commonMistakes}
-                onChange={(e) => setCommonMistakes(e.target.value)}
-                rows={2}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              disabled={!name.trim() || muscleGroups.length === 0}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-4 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              保存修改
-            </button>
+        {/* Top Buttons */}
+        <div className="absolute top-12 left-6 right-6 flex items-center justify-between z-20">
+          <button
+            onClick={() => navigate('/exercises')}
+            className="glass w-10 h-10 rounded-full flex items-center justify-center"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          <div className="flex gap-2">
+            {exercise.isCustom && (
+              <>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="glass w-10 h-10 rounded-full flex items-center justify-center"
+                >
+                  <Trash2 className="w-5 h-5 text-red-400" />
+                </button>
+                <button
+                  onClick={isEditing ? handleSaveEdit : handleStartEdit}
+                  className="glass w-10 h-10 rounded-full flex items-center justify-center"
+                >
+                  {isEditing ? (
+                    <CheckCircle className="w-5 h-5 text-neon" />
+                  ) : (
+                    <Pencil className="w-5 h-5 text-white" />
+                  )}
+                </button>
+              </>
+            )}
           </div>
         </div>
+
+        {/* Play Button */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <button className="w-20 h-20 rounded-full bg-neon flex items-center justify-center shadow-fab hover:scale-110 transition-transform">
+            <Play className="w-8 h-8 text-dark-bg ml-1" fill="currentColor" />
+          </button>
+        </div>
+
+        {/* Difficulty Badge */}
+        <div className="absolute top-12 right-20">
+          <div className="bg-dark-card/90 backdrop-blur-sm border border-dark-border rounded-2xl p-3">
+            <div className="flex items-center gap-1 mb-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-4 h-4 ${i < exercise.difficulty ? 'text-neon fill-neon' : 'text-zinc-600'}`}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-dark-muted">难度等级</p>
+          </div>
+        </div>
+
+        {/* Bottom Info */}
+        <div className="absolute bottom-6 left-6 right-6">
+          <div className="flex flex-wrap gap-2 mb-3">
+            <span
+              className="tag-pill text-white text-xs"
+              style={{ background: muscleGroup?.color + '40', border: `1px solid ${muscleGroup?.color}` }}
+            >
+              {muscleGroupName}
+            </span>
+            <span className="tag-pill bg-dark-card/80 text-white text-xs border border-dark-border">
+              {exercise.exerciseType === 'compound' ? '复合动作' : '孤立动作'}
+            </span>
+          </div>
+          <h1 className="text-3xl font-black text-white">{exercise.name}</h1>
+        </div>
       </div>
+
+      {/* Content */}
+      <div className="px-6 -mt-4 pb-8">
+        {/* Data Tags */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-dark-card border border-dark-border rounded-[24px] p-4 text-center">
+            <Dumbbell className="w-5 h-5 text-neon mx-auto mb-2" />
+            <p className="text-lg font-bold text-white">{stats?.personalRecord.maxWeight || 0}</p>
+            <p className="text-xs text-dark-muted">最大重量</p>
+          </div>
+          <div className="bg-dark-card border border-dark-border rounded-[24px] p-4 text-center">
+            <Clock className="w-5 h-5 text-cyan-accent mx-auto mb-2" />
+            <p className="text-lg font-bold text-white">{stats?.totalSets || 0}</p>
+            <p className="text-xs text-dark-muted">总组数</p>
+          </div>
+          <div className="bg-dark-card border border-dark-border rounded-[24px] p-4 text-center">
+            <CheckCircle className="w-5 h-5 text-purple-accent mx-auto mb-2" />
+            <p className="text-lg font-bold text-white">{stats?.totalVolume || 0}</p>
+            <p className="text-xs text-dark-muted">总容量</p>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="bg-dark-card border border-dark-border rounded-[28px] p-6 mb-6">
+          <h3 className="text-lg font-bold text-white mb-3">动作描述</h3>
+          <p className="text-dark-muted leading-relaxed">{exercise.description}</p>
+        </div>
+
+        {/* Steps */}
+        <div className="bg-dark-card border border-dark-border rounded-[28px] p-6 mb-6">
+          <h3 className="text-lg font-bold text-white mb-4">执行步骤</h3>
+          <div className="space-y-4">
+            {exercise.steps.map((step, index) => (
+              <div key={index} className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-neon flex items-center justify-center flex-shrink-0">
+                  <span className="text-dark-bg font-bold text-sm">{index + 1}</span>
+                </div>
+                <p className="text-dark-muted pt-1">{step}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tips */}
+        <div className="bg-dark-card border border-dark-border rounded-[28px] p-6 mb-6">
+          <h3 className="text-lg font-bold text-white mb-3">动作要点</h3>
+          <div className="space-y-2">
+            {exercise.tips.map((tip, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-neon flex-shrink-0 mt-0.5" />
+                <p className="text-dark-muted">{tip}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Common Mistakes */}
+        <div className="bg-dark-card border border-dark-border rounded-[28px] p-6 mb-6">
+          <h3 className="text-lg font-bold text-white mb-3">常见错误</h3>
+          <div className="space-y-2">
+            {exercise.commonMistakes.map((mistake, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-orange-accent flex-shrink-0 mt-0.5" />
+                <p className="text-dark-muted">{mistake}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Add Button */}
+        <button
+          onClick={() => navigate('/workout')}
+          className="w-full bg-neon text-dark-bg py-4 rounded-[32px] font-bold text-lg shadow-fab hover:shadow-fab-hover transition-all"
+        >
+          添加到训练
+        </button>
+
+        {/* Edit Form */}
+        {isEditing && (
+          <div className="bg-dark-card border border-dark-border rounded-[28px] p-6 mt-6">
+            <h3 className="text-lg font-bold text-white mb-4">编辑动作</h3>
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={editData.name}
+                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                placeholder="动作名称"
+                className="w-full bg-dark-bg border border-dark-border rounded-2xl px-4 py-3 text-white placeholder-zinc-600 focus:border-neon focus:outline-none transition-colors"
+              />
+              <textarea
+                value={editData.description}
+                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                placeholder="动作描述"
+                rows={2}
+                className="w-full bg-dark-bg border border-dark-border rounded-2xl px-4 py-3 text-white placeholder-zinc-600 focus:border-neon focus:outline-none transition-colors resize-none"
+              />
+              <textarea
+                value={editData.steps}
+                onChange={(e) => setEditData({ ...editData, steps: e.target.value })}
+                placeholder="动作步骤（每行一条）"
+                rows={3}
+                className="w-full bg-dark-bg border border-dark-border rounded-2xl px-4 py-3 text-white placeholder-zinc-600 focus:border-neon focus:outline-none transition-colors resize-none"
+              />
+              <textarea
+                value={editData.tips}
+                onChange={(e) => setEditData({ ...editData, tips: e.target.value })}
+                placeholder="训练技巧（每行一条）"
+                rows={2}
+                className="w-full bg-dark-bg border border-dark-border rounded-2xl px-4 py-3 text-white placeholder-zinc-600 focus:border-neon focus:outline-none transition-colors resize-none"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1 py-3 rounded-2xl bg-dark-bg text-white font-medium hover:bg-zinc-700 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 py-3 rounded-2xl bg-neon text-dark-bg font-bold hover:opacity-90 transition-opacity"
+                >
+                  保存
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="删除动作"
+        message={`确定要删除"${exercise.name}"吗？此操作无法撤销。`}
+        confirmText="确认删除"
+        danger
+      />
     </div>
   )
 }

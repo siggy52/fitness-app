@@ -1,4 +1,4 @@
-import { Profile, Exercise, WorkoutLog } from '../types'
+import { Profile, Exercise, WorkoutLog, FoodLog } from '../types'
 
 export const calculateBMR = (profile: Omit<Profile, 'bmr'>): number => {
   if (profile.gender === 'male') {
@@ -90,6 +90,17 @@ export const getTodayDateString = (): string => {
   return new Date().toISOString().split('T')[0]
 }
 
+export const getTodayString = (): string => {
+  return new Date().toISOString().split('T')[0]
+}
+
+export const getGreeting = (): string => {
+  const hour = new Date().getHours()
+  if (hour < 12) return '早上好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
+}
+
 export const getWeekDates = (): { date: string; dayName: string }[] => {
   const today = new Date()
   const dayOfWeek = today.getDay()
@@ -146,6 +157,122 @@ export const getSuggestedWeight = (exerciseName: string, logs: WorkoutLog[]): { 
     suggestedWeight: lastWeight + 2.5,
     lastWeight,
     progress,
+  }
+}
+
+export const calculateFatigueLevel = (workoutLogs: WorkoutLog[]): number => {
+  const consecutive = getConsecutiveWorkoutDays(workoutLogs)
+  const today = getTodayString()
+  const trainedToday = workoutLogs.some((log) => log.date === today)
+
+  let fatigue = consecutive * 12
+  if (trainedToday) fatigue += 10
+  if (consecutive >= 5) fatigue += 10
+
+  return Math.min(100, Math.max(0, fatigue))
+}
+
+/**
+ * 使用 Epley 公式估算 1RM（理论最大重量）
+ * 1RM = weight * (1 + reps / 30)
+ */
+export const calculateEstimated1RM = (weight: number, reps: number): number => {
+  if (weight <= 0 || reps <= 0) return 0
+  if (reps === 1) return weight
+  return Math.round(weight * (1 + reps / 30) * 10) / 10
+}
+
+/**
+ * 获取某个动作的历史最大理论重量（1RM）
+ */
+export const getTheoreticalMax = (exerciseName: string, logs: WorkoutLog[]): number => {
+  let max1RM = 0
+  logs.forEach((log) => {
+    log.exercises
+      .filter((ex) => ex.name === exerciseName)
+      .forEach((ex) => {
+        const estimated1RM = calculateEstimated1RM(ex.weight, ex.reps)
+        if (estimated1RM > max1RM) max1RM = estimated1RM
+      })
+  })
+  return max1RM
+}
+
+/**
+ * 获取最近一次训练的"实际/理论"比率
+ * 值越低说明当前表现远低于历史最佳，疲劳程度越高
+ */
+const getPerformanceRatio = (exerciseName: string, logs: WorkoutLog[]): number => {
+  const theoreticalMax = getTheoreticalMax(exerciseName, logs)
+  if (theoreticalMax <= 0) return 1
+
+  const sortedLogs = [...logs]
+    .filter((log) => log.exercises.some((ex) => ex.name === exerciseName))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  if (sortedLogs.length === 0) return 1
+
+  const latestExercise = sortedLogs[0].exercises.find((ex) => ex.name === exerciseName)
+  if (!latestExercise) return 1
+
+  const current1RM = calculateEstimated1RM(latestExercise.weight, latestExercise.reps)
+  return Math.min(1, current1RM / theoreticalMax)
+}
+
+/**
+ * 计算综合疲劳值 = 主观疲劳(40%) + 表现疲劳(30%) + 频率疲劳(20%) + 容量疲劳(10%)
+ */
+export const calculateCombinedFatigue = (
+  workoutLogs: WorkoutLog[],
+  subjectiveLevel: number
+): { calculatedLevel: number; combinedLevel: number } => {
+  // 1. 计算表现疲劳（当前重量 vs 理论最大重量）
+  const today = getTodayString()
+  const todayLogs = workoutLogs.filter((log) => log.date === today)
+
+  let performanceFatigueSum = 0
+  let performanceCount = 0
+  if (todayLogs.length > 0) {
+    const allExerciseNames = new Set(todayLogs.flatMap((log) => log.exercises.map((ex) => ex.name)))
+    allExerciseNames.forEach((name) => {
+      const ratio = getPerformanceRatio(name, workoutLogs)
+      performanceFatigueSum += (1 - ratio) * 100
+      performanceCount++
+    })
+  }
+  const performanceFatigue = performanceCount > 0 ? performanceFatigueSum / performanceCount : 0
+
+  // 2. 训练频率疲劳
+  const consecutive = getConsecutiveWorkoutDays(workoutLogs)
+  const trainedToday = workoutLogs.some((log) => log.date === today)
+  const freqFatigue = Math.min(100, consecutive * 12 + (trainedToday ? 10 : 0) + (consecutive >= 5 ? 10 : 0))
+
+  // 3. 容量疲劳（最近7天训练量）
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const recentVolume = workoutLogs
+    .filter((log) => new Date(log.date) >= sevenDaysAgo)
+    .reduce((sum, log) => sum + log.totalVolume, 0)
+
+  // 假设每周容量基数为 50000kg
+  const weeklyVolumeBase = 50000
+  const volumeFatigue = Math.min(100, (recentVolume / weeklyVolumeBase) * 50)
+
+  // 4. 综合计算
+  const calculatedLevel = Math.round(
+    performanceFatigue * 0.30 +
+    freqFatigue * 0.20 +
+    volumeFatigue * 0.10
+  )
+
+  const combinedLevel = Math.round(
+    subjectiveLevel * 0.40 +
+    calculatedLevel * 0.60
+  )
+
+  return {
+    calculatedLevel: Math.min(100, Math.max(0, calculatedLevel)),
+    combinedLevel: Math.min(100, Math.max(0, combinedLevel)),
   }
 }
 
@@ -214,5 +341,33 @@ export const exportWorkoutLogsToCsv = (logs: WorkoutLog[]): string => {
   }
 
   return rows.join('\n')
+}
+
+export const exportAllDataToCsv = (workoutLogs: WorkoutLog[], foodLogs: FoodLog[]): string => {
+  const sections: string[] = []
+
+  if (workoutLogs.length > 0) {
+    sections.push('=== 训练记录 ===')
+    sections.push('日期,动作名,重量(kg),组数,次数,RPE')
+    for (const log of workoutLogs) {
+      for (const ex of log.exercises) {
+        sections.push([log.date, ex.name, ex.weight, ex.sets, ex.reps, ex.rpe].map(escapeCsvField).join(','))
+      }
+    }
+    sections.push('')
+  }
+
+  if (foodLogs.length > 0) {
+    sections.push('=== 饮食记录 ===')
+    sections.push('日期,食物名,热量(千卡),蛋白质(g),碳水(g),脂肪(g)')
+    for (const log of foodLogs) {
+      for (const food of log.foods) {
+        sections.push([log.date, food.name, food.calories, food.protein, food.carbs, food.fat].map(escapeCsvField).join(','))
+      }
+    }
+    sections.push('')
+  }
+
+  return sections.join('\n')
 }
 

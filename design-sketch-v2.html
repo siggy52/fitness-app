@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack UI 设计草图 V2 - 重构版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 本地 Inter 字体引入 - 避免网络依赖 */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: local('Inter Light'), local('Inter-Light');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Inter Regular'), local('Inter-Regular');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('Inter Medium'), local('Inter-Medium');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Inter SemiBold'), local('Inter-SemiBold');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Inter Bold'), local('Inter-Bold');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: local('Inter ExtraBold'), local('Inter-ExtraBold');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: local('Inter Black'), local('Inter-Black');
+}
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+        }
+        
+        /* 新配色系统 - 高对比暗色主题 */
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-card: #1a1a1a;
+            --accent-yellow: #e8ff47;
+            --accent-purple: #a78bfa;
+            --accent-cyan: #67e8f9;
+            --accent-orange: #fb923c;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #52525b;
+        }
+        
+        /* 动画 */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+        .animate-wave { animation: wave 2s ease-in-out infinite; }
+        
+        /* 手机框架 */
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: var(--bg-primary);
+            border-radius: 50px;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8);
+            overflow: hidden;
+            position: relative;
+            border: 8px solid #1f1f1f;
+        }
+        
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 35px;
+            background: var(--bg-primary);
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            z-index: 100;
+        }
+        
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: var(--bg-primary);
+            position: relative;
+        }
+        
+        .phone-screen::-webkit-scrollbar { display: none; }
+        
+        /* 玻璃态效果 */
+        .glass {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* 大圆角卡片 */
+        .card-xl {
+            border-radius: 32px;
+        }
+        
+        .card-lg {
+            border-radius: 24px;
+        }
+        
+        /* 渐变文字 */
+        .text-gradient {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* 波浪线 */
+        .wave-line {
+            stroke: var(--accent-yellow);
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+        }
+        
+        /* 环形进度 */
+        .circular-progress {
+            transform: rotate(-90deg);
+        }
+        
+        .circular-progress-bg {
+            fill: none;
+            stroke: rgba(255,255,255,0.1);
+            stroke-width: 8;
+        }
+        
+        .circular-progress-fill {
+            fill: none;
+            stroke: var(--accent-yellow);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        /* 浮动按钮 */
+        .fab {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(232,255,71,0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 50px rgba(232,255,71,0.5);
+        }
+        
+        /* 标签样式 */
+        .tag-pill {
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav-v2 {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 70px;
+            background: rgba(26,26,26,0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 35px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 50;
+        }
+        
+        .nav-item-v2 {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+        
+        .nav-item-v2.active {
+            background: var(--accent-yellow);
+            color: var(--bg-primary);
+        }
+        
+        /* 滚动卡片 */
+        .scroll-card {
+            scroll-snap-align: start;
+            flex-shrink: 0;
+        }
+        
+        /* 隐藏滚动条 */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen p-8">
+    
+    <!-- 标题区 -->
+    <div class="text-center mb-12">
+        <h1 class="text-5xl font-black text-white mb-4 tracking-tight">FitTrack <span class="text-[#e8ff47]">V2</span></h1>
+        <p class="text-zinc-400 text-lg">大胆重构 · 高对比 · 沉浸式</p>
+    </div>
+
+    <!-- 设计草图展示区 -->
+    <div class="flex flex-wrap justify-center gap-12">
+        
+        <!-- 1. 全新首页 - 沉浸式 -->
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl font-bold text-white mb-4">1. 首页 Home</h2>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <!-- 顶部状态栏 -->
+                    <div class="flex justify-between items-center px-6 pt-12 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#e8ff47] to-[#a78bfa] flex items-center justify-center text-black font-bold text-sm">
+                                Z
+                            </div>
+                            <div>
+                                <p class="text-xs text-zinc-500">早上好</p>
+                                <p class="text-white font-semibold">Zack</p>
+                            </div>
+                        </div>
+                        <button class="w-10 h-10 rounded-full glass flex items-center justify-center text-white">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 主视觉区 - 今日目标 -->
+                    <div class="px-6 mb-6">
+                        <div class="relative h-[280px] rounded-[32px] overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=800&fit=crop" 
+                                 class="absolute inset-0 w-full h-full object-cover" alt="健身">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                            
+                            <div class="absolute top-6 left-6">
+                                <span class="tag-pill bg-[#e8ff47] text-black">今日目标</span>
+                            </div>
+                            
+                            <div class="absolute bottom-6 left-6 right-6">
+                                <h2 class="text-3xl font-bold text-white mb-2">胸肌训练日</h2>
+                                <p class="text-zinc-300 text-sm mb-4">5 个动作 · 预计 45 分钟</p>
+                                <div class="flex items-center gap-4">
+                                    <div class="flex -space-x-2">
+                                        <div class="w-8 h-8 rounded-full bg-zinc-600 border-2 border-black"></div>
+                                        <div class="w-8 h-8 rounded-full bg-zinc-500 border-2 border-black"></div>
+                                        <div class="w-8 h-8 rounded-full bg-zinc-400 border-2 border-black flex items-center justify-center text-xs text-black font-bold">+3</div>
+                                    </div>
+                                    <p class="text-zinc-400 text-xs">好友已完成</p>
+                                </div>
+                            </div>
+                            
+                            <!-- 播放按钮 -->
+                            <button class="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-[#e8ff47] flex items-center justify-center text-black text-xl shadow-lg shadow-[#e8ff47]/30">
+                                <i class="fas fa-play ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 数据卡片横向滚动 -->
+                    <div class="px-6 mb-6">
+                        <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                            <!-- 热量卡片 -->
+                            <div class="scroll-card w-[160px] h-[180px] bg-[#1a1a1a] rounded-[28px] p-5 flex flex-col justify-between border border-zinc-800">
+                                <div class="w-12 h-12 rounded-2xl bg-[#e8ff47]/10 flex items-center justify-center">
+                                    <i class="fas fa-fire text-[#e8ff47] text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-bold text-white">1,850</p>
+                                    <p class="text-zinc-500 text-sm">千卡消耗</p>
+                                </div>
+                            </div>
+                            
+                            <!-- 训练时长卡片 -->
+                            <div class="scroll-card w-[160px] h-[180px] bg-[#1a1a1a] rounded-[28px] p-5 flex flex-col justify-between border border-zinc-800">
+                                <div class="w-12 h-12 rounded-2xl bg-[#a78bfa]/10 flex items-center justify-center">
+                                    <i class="fas fa-clock text-[#a78bfa] text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-bold text-white">32<span class="text-lg text-zinc-500">min</span></p>
+                                    <p class="text-zinc-500 text-sm">本周训练</p>
+                                </div>
+                            </div>
+                            
+                            <!-- 疲劳度卡片 -->
+                            <div class="scroll-card w-[160px] h-[180px] bg-[#1a1a1a] rounded-[28px] p-5 flex flex-col justify-between border border-zinc-800">
+                                <div class="w-12 h-12 rounded-2xl bg-[#67e8f9]/10 flex items-center justify-center">
+                                    <i class="fas fa-heartbeat text-[#67e8f9] text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-bold text-white">42<span class="text-lg text-zinc-500">%</span></p>
+                                    <p class="text-zinc-500 text-sm">疲劳指数</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 本周训练日历 -->
+                    <div class="px-6 mb-24">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-white font-semibold">本周训练</h3>
+                            <button class="text-[#e8ff47] text-sm">查看全部</button>
+                        </div>
+                        <div class="flex justify-between">
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#e8ff47] flex items-center justify-center text-black font-bold">M</div>
+                                <span class="text-xs text-zinc-500">一</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#e8ff47] flex items-center justify-center text-black font-bold">T</div>
+                                <span class="text-xs text-zinc-500">二</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center text-zinc-500 font-bold">W</div>
+                                <span class="text-xs text-zinc-500">三</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#e8ff47] flex items-center justify-center text-black font-bold">T</div>
+                                <span class="text-xs text-zinc-500">四</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center text-zinc-500 font-bold">F</div>
+                                <span class="text-xs text-zinc-500">五</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl border-2 border-dashed border-zinc-700 flex items-center justify-center text-zinc-600 font-bold">S</div>
+                                <span class="text-xs text-zinc-500">六</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl border-2 border-dashed border-zinc-700 flex items-center justify-center text-zinc-600 font-bold">S</div>
+                                <span class="text-xs text-zinc-500">日</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 底部浮动导航 -->
+                    <div class="bottom-nav-v2">
+                        <button class="nav-item-v2 active">
+                            <i class="fas fa-home"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-calendar"></i>
+                        </button>
+                        <button class="fab">
+                            <i class="fas fa-plus text-2xl"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-chart-pie"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 训练页面 - 全屏沉浸 -->
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl font-bold text-white mb-4">2. 训练 Workout</h2>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <!-- 全屏背景图 -->
+                    <div class="absolute inset-0">
+                        <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=600&h=1000&fit=crop" 
+                             class="w-full h-full object-cover" alt="训练">
+                        <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/90"></div>
+                    </div>
+                    
+                    <!-- 顶部导航 -->
+                    <div class="relative flex justify-between items-center px-6 pt-12 pb-4">
+                        <button class="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="flex gap-3">
+                            <button class="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
+                                <i class="fas fa-music"></i>
+                            </button>
+                            <button class="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 主要内容 -->
+                    <div class="relative px-6 mt-8">
+                        <!-- 训练类型标签 -->
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="tag-pill bg-white/10 text-white backdrop-blur">胸部训练</span>
+                            <span class="tag-pill bg-[#e8ff47] text-black">第 3/5 个动作</span>
+                        </div>
+                        
+                        <!-- 动作名称 -->
+                        <h1 class="text-4xl font-black text-white mb-2 leading-tight">杠铃卧推</h1>
+                        <p class="text-zinc-400 text-lg mb-8">Barbell Bench Press</p>
+                        
+                        <!-- 大计时器 -->
+                        <div class="flex flex-col items-center mb-8">
+                            <div class="text-[80px] font-black text-white leading-none tracking-tighter">
+                                02:35
+                            </div>
+                            <p class="text-zinc-500 mt-2">休息倒计时</p>
+                        </div>
+                        
+                        <!-- 波浪动画 -->
+                        <div class="h-16 mb-8 flex items-end justify-center gap-1">
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 40%; animation-delay: 0s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 70%; animation-delay: 0.1s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 50%; animation-delay: 0.2s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 90%; animation-delay: 0.3s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 60%; animation-delay: 0.4s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 80%; animation-delay: 0.5s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 45%; animation-delay: 0.6s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 75%; animation-delay: 0.7s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 55%; animation-delay: 0.8s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 85%; animation-delay: 0.9s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 40%; animation-delay: 1s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 70%; animation-delay: 1.1s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 50%; animation-delay: 1.2s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 90%; animation-delay: 1.3s;"></div>
+                            <div class="w-1 bg-[#e8ff47] rounded-full animate-wave" style="height: 60%; animation-delay: 1.4s;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 底部控制区 -->
+                    <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/95 to-transparent">
+                        <!-- 当前组数据 -->
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-white">60<span class="text-lg text-zinc-500">kg</span></p>
+                                <p class="text-zinc-500 text-sm">重量</p>
+                            </div>
+                            <div class="w-px h-12 bg-zinc-800"></div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-white">4<span class="text-lg text-zinc-500">组</span></p>
+                                <p class="text-zinc-500 text-sm">目标</p>
+                            </div>
+                            <div class="w-px h-12 bg-zinc-800"></div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-white">10<span class="text-lg text-zinc-500">次</span></p>
+                                <p class="text-zinc-500 text-sm">次数</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 控制按钮 -->
+                        <div class="flex gap-4">
+                            <button class="flex-1 h-16 rounded-2xl bg-zinc-800 text-white font-semibold text-lg flex items-center justify-center gap-2">
+                                <i class="fas fa-minus"></i>
+                                减重组
+                            </button>
+                            <button class="flex-1 h-16 rounded-2xl bg-[#e8ff47] text-black font-bold text-lg flex items-center justify-center gap-2">
+                                <i class="fas fa-check"></i>
+                                完成组
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 训练计划页 - 卡片堆叠 -->
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl font-bold text-white mb-4">3. 训练计划 Plan</h2>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen px-6">
+                    <!-- 顶部 -->
+                    <div class="flex justify-between items-center pt-12 pb-6">
+                        <div>
+                            <p class="text-zinc-500 text-sm">2026年 5月</p>
+                            <h1 class="text-3xl font-bold text-white">训练计划</h1>
+                        </div>
+                        <button class="w-12 h-12 rounded-full bg-[#e8ff47] flex items-center justify-center text-black">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 分类标签 -->
+                    <div class="flex gap-3 mb-6 overflow-x-auto hide-scrollbar">
+                        <button class="tag-pill bg-[#e8ff47] text-black whitespace-nowrap">全部</button>
+                        <button class="tag-pill bg-zinc-800 text-zinc-400 whitespace-nowrap">胸部</button>
+                        <button class="tag-pill bg-zinc-800 text-zinc-400 whitespace-nowrap">背部</button>
+                        <button class="tag-pill bg-zinc-800 text-zinc-400 whitespace-nowrap">腿部</button>
+                        <button class="tag-pill bg-zinc-800 text-zinc-400 whitespace-nowrap">有氧</button>
+                    </div>
+                    
+                    <!-- 卡片列表 -->
+                    <div class="space-y-4 pb-24">
+                        <!-- 卡片1 - 紫色主题 -->
+                        <div class="relative h-[200px] rounded-[32px] overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-[#a78bfa] to-[#7c3aed]"></div>
+                            <div class="absolute top-5 left-5">
+                                <span class="tag-pill bg-white/20 text-white text-xs">腿部训练</span>
+                            </div>
+                            <div class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="absolute bottom-5 left-5 right-5">
+                                <h3 class="text-2xl font-bold text-white mb-1">Lower Body</h3>
+                                <p class="text-white/70 text-sm">5 个动作 · 臀腿塑形</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <div class="flex -space-x-2">
+                                        <div class="w-6 h-6 rounded-full bg-white/30 border border-white/50"></div>
+                                        <div class="w-6 h-6 rounded-full bg-white/30 border border-white/50"></div>
+                                    </div>
+                                    <span class="text-white/60 text-xs">+128 人已完成</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 卡片2 - 黄色主题 -->
+                        <div class="relative h-[200px] rounded-[32px] overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-[#e8ff47] to-[#bef264]"></div>
+                            <div class="absolute top-5 left-5">
+                                <span class="tag-pill bg-black/10 text-black text-xs">胸部训练</span>
+                            </div>
+                            <div class="absolute top-5 right-5 w-10 h-10 rounded-full bg-black/10 flex items-center justify-center text-black">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="absolute bottom-5 left-5 right-5">
+                                <h3 class="text-2xl font-bold text-black mb-1">Push Day</h3>
+                                <p class="text-black/60 text-sm">6 个动作 · 胸肩三头</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <div class="flex -space-x-2">
+                                        <div class="w-6 h-6 rounded-full bg-black/20 border border-black/30"></div>
+                                        <div class="w-6 h-6 rounded-full bg-black/20 border border-black/30"></div>
+                                    </div>
+                                    <span class="text-black/50 text-xs">+256 人已完成</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 卡片3 - 深色主题 -->
+                        <div class="relative h-[200px] rounded-[32px] overflow-hidden border border-zinc-800">
+                            <div class="absolute inset-0 bg-[#141414]"></div>
+                            <div class="absolute top-5 left-5">
+                                <span class="tag-pill bg-zinc-800 text-zinc-400 text-xs">背部训练</span>
+                            </div>
+                            <div class="absolute top-5 right-5 w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-white">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="absolute bottom-5 left-5 right-5">
+                                <h3 class="text-2xl font-bold text-white mb-1">Pull Day</h3>
+                                <p class="text-zinc-500 text-sm">5 个动作 · 背二头</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <div class="flex -space-x-2">
+                                        <div class="w-6 h-6 rounded-full bg-zinc-700 border border-zinc-600"></div>
+                                        <div class="w-6 h-6 rounded-full bg-zinc-700 border border-zinc-600"></div>
+                                    </div>
+                                    <span class="text-zinc-600 text-xs">+89 人已完成</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 卡片4 - 青色主题 -->
+                        <div class="relative h-[200px] rounded-[32px] overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-[#67e8f9] to-[#22d3ee]"></div>
+                            <div class="absolute top-5 left-5">
+                                <span class="tag-pill bg-black/10 text-black text-xs">有氧训练</span>
+                            </div>
+                            <div class="absolute top-5 right-5 w-10 h-10 rounded-full bg-black/10 flex items-center justify-center text-black">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="absolute bottom-5 left-5 right-5">
+                                <h3 class="text-2xl font-bold text-black mb-1">Cardio</h3>
+                                <p class="text-black/60 text-sm">30 分钟 · 燃脂有氧</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <div class="flex -space-x-2">
+                                        <div class="w-6 h-6 rounded-full bg-black/20 border border-black/30"></div>
+                                        <div class="w-6 h-6 rounded-full bg-black/20 border border-black/30"></div>
+                                    </div>
+                                    <span class="text-black/50 text-xs">+512 人已完成</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 底部导航 -->
+                    <div class="bottom-nav-v2">
+                        <button class="nav-item-v2">
+                            <i class="fas fa-home"></i>
+                        </button>
+                        <button class="nav-item-v2 active">
+                            <i class="fas fa-calendar"></i>
+                        </button>
+                        <button class="fab">
+                            <i class="fas fa-plus text-2xl"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-chart-pie"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 数据统计 - 可视化 -->
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl font-bold text-white mb-4">4. 数据统计 Stats</h2>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen px-6">
+                    <!-- 顶部 -->
+                    <div class="pt-12 pb-6">
+                        <p class="text-zinc-500 text-sm mb-1">本周概览</p>
+                        <h1 class="text-3xl font-bold text-white">数据统计</h1>
+                    </div>
+                    
+                    <!-- 大数字展示 -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-[#1a1a1a] rounded-[28px] p-5 border border-zinc-800">
+                            <div class="w-10 h-10 rounded-xl bg-[#e8ff47]/10 flex items-center justify-center mb-3">
+                                <i class="fas fa-fire text-[#e8ff47]"></i>
+                            </div>
+                            <p class="text-3xl font-bold text-white">12,450</p>
+                            <p class="text-zinc-500 text-sm">总训练量 (kg)</p>
+                        </div>
+                        <div class="bg-[#1a1a1a] rounded-[28px] p-5 border border-zinc-800">
+                            <div class="w-10 h-10 rounded-xl bg-[#a78bfa]/10 flex items-center justify-center mb-3">
+                                <i class="fas fa-clock text-[#a78bfa]"></i>
+                            </div>
+                            <p class="text-3xl font-bold text-white">18.5<span class="text-lg text-zinc-500">h</span></p>
+                            <p class="text-zinc-500 text-sm">训练时长</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 环形进度 - 本周目标 -->
+                    <div class="bg-[#1a1a1a] rounded-[32px] p-6 mb-6 border border-zinc-800">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-white font-semibold mb-1">本周目标</h3>
+                                <p class="text-zinc-500 text-sm">已完成 4/5 次训练</p>
+                            </div>
+                            <span class="text-[#e8ff47] font-bold">80%</span>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="relative w-24 h-24">
+                                <svg class="circular-progress w-full h-full" viewBox="0 0 100 100">
+                                    <circle class="circular-progress-bg" cx="50" cy="50" r="42"/>
+                                    <circle class="circular-progress-fill" cx="50" cy="50" r="42" 
+                                            stroke-dasharray="264" stroke-dashoffset="52.8"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i class="fas fa-trophy text-2xl text-[#e8ff47]"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-zinc-500">周一</span>
+                                    <span class="text-white">✓</span>
+                                </div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-zinc-500">周二</span>
+                                    <span class="text-white">✓</span>
+                                </div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-zinc-500">周三</span>
+                                    <span class="text-zinc-600">—</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-zinc-500">周四</span>
+                                    <span class="text-white">✓</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 训练量趋势图 -->
+                    <div class="bg-[#1a1a1a] rounded-[32px] p-6 mb-6 border border-zinc-800">
+                        <h3 class="text-white font-semibold mb-4">训练量趋势</h3>
+                        <div class="h-32 flex items-end justify-between gap-2">
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-zinc-800 rounded-t-lg relative" style="height: 60%;">
+                                    <div class="absolute bottom-0 left-0 right-0 bg-[#e8ff47] rounded-t-lg transition-all" style="height: 100%;"></div>
+                                </div>
+                                <span class="text-xs text-zinc-500">一</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-zinc-800 rounded-t-lg relative" style="height: 80%;">
+                                    <div class="absolute bottom-0 left-0 right-0 bg-[#e8ff47] rounded-t-lg transition-all" style="height: 100%;"></div>
+                                </div>
+                                <span class="text-xs text-zinc-500">二</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-zinc-800 rounded-t-lg relative" style="height: 30%;">
+                                    <div class="absolute bottom-0 left-0 right-0 bg-zinc-600 rounded-t-lg transition-all" style="height: 100%;"></div>
+                                </div>
+                                <span class="text-xs text-zinc-500">三</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-zinc-800 rounded-t-lg relative" style="height: 90%;">
+                                    <div class="absolute bottom-0 left-0 right-0 bg-[#e8ff47] rounded-t-lg transition-all" style="height: 100%;"></div>
+                                </div>
+                                <span class="text-xs text-zinc-500">四</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-zinc-800 rounded-t-lg relative" style="height: 40%;">
+                                    <div class="absolute bottom-0 left-0 right-0 bg-zinc-600 rounded-t-lg transition-all" style="height: 100%;"></div>
+                                </div>
+                                <span class="text-xs text-zinc-500">五</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-zinc-800 rounded-t-lg relative" style="height: 20%;">
+                                    <div class="absolute bottom-0 left-0 right-0 bg-zinc-600 rounded-t-lg transition-all" style="height: 100%;"></div>
+                                </div>
+                                <span class="text-xs text-zinc-500">六</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-2">
+                                <div class="w-full bg-zinc-800 rounded-t-lg relative" style="height: 15%;">
+                                    <div class="absolute bottom-0 left-0 right-0 bg-zinc-600 rounded-t-lg transition-all" style="height: 100%;"></div>
+                                </div>
+                                <span class="text-xs text-zinc-500">日</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 身体数据 -->
+                    <div class="bg-[#1a1a1a] rounded-[32px] p-6 mb-24 border border-zinc-800">
+                        <h3 class="text-white font-semibold mb-4">身体数据</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-[#67e8f9]/10 flex items-center justify-center">
+                                        <i class="fas fa-weight text-[#67e8f9]"></i>
+                                    </div>
+                                    <span class="text-zinc-400">体重</span>
+                                </div>
+                                <span class="text-white font-semibold">70.5 <span class="text-zinc-500 text-sm">kg</span></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-[#fb923c]/10 flex items-center justify-center">
+                                        <i class="fas fa-percentage text-[#fb923c]"></i>
+                                    </div>
+                                    <span class="text-zinc-400">体脂率</span>
+                                </div>
+                                <span class="text-white font-semibold">18.2 <span class="text-zinc-500 text-sm">%</span></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-[#a78bfa]/10 flex items-center justify-center">
+                                        <i class="fas fa-muscle text-[#a78bfa]"></i>
+                                    </div>
+                                    <span class="text-zinc-400">肌肉量</span>
+                                </div>
+                                <span class="text-white font-semibold">54.8 <span class="text-zinc-500 text-sm">kg</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 底部导航 -->
+                    <div class="bottom-nav-v2">
+                        <button class="nav-item-v2">
+                            <i class="fas fa-home"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-calendar"></i>
+                        </button>
+                        <button class="fab">
+                            <i class="fas fa-plus text-2xl"></i>
+                        </button>
+                        <button class="nav-item-v2 active">
+                            <i class="fas fa-chart-pie"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 个人中心 - 极简 -->
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl font-bold text-white mb-4">5. 个人中心 Profile</h2>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <!-- 头部背景 -->
+                    <div class="h-48 bg-gradient-to-b from-zinc-900 to-[#0a0a0a] relative">
+                        <div class="absolute top-12 right-6">
+                            <button class="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 用户信息卡片 -->
+                    <div class="px-6 -mt-20 mb-6">
+                        <div class="bg-[#1a1a1a] rounded-[32px] p-6 border border-zinc-800">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[#e8ff47] to-[#a78bfa] p-1">
+                                    <div class="w-full h-full rounded-full bg-zinc-800 flex items-center justify-center text-2xl font-bold text-white">
+                                        Z
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 class="text-2xl font-bold text-white">Zack</h2>
+                                    <p class="text-zinc-500">健身爱好者 · LV.12</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-white">24</p>
+                                    <p class="text-zinc-500 text-xs">训练次数</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-white">156</p>
+                                    <p class="text-zinc-500 text-xs">连续天数</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-white">8.5k</p>
+                                    <p class="text-zinc-500 text-xs">消耗千卡</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 菜单列表 -->
+                    <div class="px-6 space-y-3 pb-24">
+                        <button class="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center justify-between border border-zinc-800">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-[#e8ff47]/10 flex items-center justify-center">
+                                    <i class="fas fa-medal text-[#e8ff47]"></i>
+                                </div>
+                                <span class="text-white font-medium">我的成就</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-zinc-600"></i>
+                        </button>
+                        
+                        <button class="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center justify-between border border-zinc-800">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-[#a78bfa]/10 flex items-center justify-center">
+                                    <i class="fas fa-history text-[#a78bfa]"></i>
+                                </div>
+                                <span class="text-white font-medium">训练历史</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-zinc-600"></i>
+                        </button>
+                        
+                        <button class="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center justify-between border border-zinc-800">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-[#67e8f9]/10 flex items-center justify-center">
+                                    <i class="fas fa-bullseye text-[#67e8f9]"></i>
+                                </div>
+                                <span class="text-white font-medium">目标设置</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-zinc-600"></i>
+                        </button>
+                        
+                        <button class="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center justify-between border border-zinc-800">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-[#fb923c]/10 flex items-center justify-center">
+                                    <i class="fas fa-bell text-[#fb923c]"></i>
+                                </div>
+                                <span class="text-white font-medium">通知提醒</span>
+                            </div>
+                            <div class="w-12 h-6 bg-[#e8ff47] rounded-full relative">
+                                <div class="absolute right-0.5 top-0.5 w-5 h-5 bg-black rounded-full"></div>
+                            </div>
+                        </button>
+                        
+                        <button class="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center justify-between border border-zinc-800">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center">
+                                    <i class="fas fa-moon text-zinc-400"></i>
+                                </div>
+                                <span class="text-white font-medium">深色模式</span>
+                            </div>
+                            <div class="w-12 h-6 bg-zinc-700 rounded-full relative">
+                                <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-zinc-500 rounded-full"></div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <!-- 底部导航 -->
+                    <div class="bottom-nav-v2">
+                        <button class="nav-item-v2">
+                            <i class="fas fa-home"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-calendar"></i>
+                        </button>
+                        <button class="fab">
+                            <i class="fas fa-plus text-2xl"></i>
+                        </button>
+                        <button class="nav-item-v2">
+                            <i class="fas fa-chart-pie"></i>
+                        </button>
+                        <button class="nav-item-v2 active">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 动作详情 - 全屏 -->
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl font-bold text-white mb-4">6. 动作详情 Exercise</h2>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <!-- 全屏视频/图片区 -->
+                    <div class="h-[55%] relative">
+                        <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=800&fit=crop" 
+                             class="w-full h-full object-cover" alt="卧推">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent"></div>
+                        
+                        <!-- 顶部按钮 -->
+                        <div class="absolute top-12 left-6 right-6 flex justify-between">
+                            <button class="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button class="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 播放按钮 -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <button class="w-20 h-20 rounded-full bg-[#e8ff47] flex items-center justify-center text-black text-2xl shadow-lg shadow-[#e8ff47]/30">
+                                <i class="fas fa-play ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 动作信息 -->
+                    <div class="px-6 -mt-8 relative z-10">
+                        <div class="flex items-end justify-between mb-4">
+                            <div>
+                                <span class="tag-pill bg-[#e8ff47] text-black text-xs mb-2 inline-block">胸部</span>
+                                <h1 class="text-3xl font-black text-white">杠铃卧推</h1>
+                                <p class="text-zinc-500">Barbell Bench Press</p>
+                            </div>
+                            <div class="w-16 h-16 rounded-2xl bg-[#1a1a1a] border border-zinc-800 flex flex-col items-center justify-center">
+                                <span class="text-xl font-bold text-[#e8ff47]">4.8</span>
+                                <span class="text-xs text-zinc-500">难度</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据标签 -->
+                        <div class="flex gap-3 mb-6">
+                            <div class="flex-1 bg-[#1a1a1a] rounded-2xl p-4 border border-zinc-800 text-center">
+                                <i class="fas fa-dumbbell text-[#a78bfa] mb-1"></i>
+                                <p class="text-white font-semibold">胸大肌</p>
+                                <p class="text-zinc-500 text-xs">主要肌群</p>
+                            </div>
+                            <div class="flex-1 bg-[#1a1a1a] rounded-2xl p-4 border border-zinc-800 text-center">
+                                <i class="fas fa-layer-group text-[#67e8f9] mb-1"></i>
+                                <p class="text-white font-semibold">复合动作</p>
+                                <p class="text-zinc-500 text-xs">动作类型</p>
+                            </div>
+                            <div class="flex-1 bg-[#1a1a1a] rounded-2xl p-4 border border-zinc-800 text-center">
+                                <i class="fas fa-fire text-[#fb923c] mb-1"></i>
+                                <p class="text-white font-semibold">高消耗</p>
+                                <p class="text-zinc-500 text-xs">热量消耗</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 动作步骤 -->
+                        <div class="mb-6">
+                            <h3 class="text-white font-semibold mb-3">动作步骤</h3>
+                            <div class="space-y-3">
+                                <div class="flex gap-3">
+                                    <div class="w-6 h-6 rounded-full bg-[#e8ff47] flex items-center justify-center text-black text-xs font-bold flex-shrink-0">1</div>
+                                    <p class="text-zinc-400 text-sm">平躺在卧推凳上，双脚平放地面，臀部和肩部贴紧凳面</p>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs font-bold flex-shrink-0">2</div>
+                                    <p class="text-zinc-400 text-sm">双手握住杠铃，握距略宽于肩，手腕保持中立位</p>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs font-bold flex-shrink-0">3</div>
+                                    <p class="text-zinc-400 text-sm">缓慢下放杠铃至胸部，然后推起至手臂伸直</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 添加到训练按钮 -->
+                        <button class="w-full h-14 rounded-2xl bg-[#e8ff47] text-black font-bold text-lg flex items-center justify-center gap-2 mb-6">
+                            <i class="fas fa-plus"></i>
+                            添加到今日训练
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. 组件展示 -->
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl font-bold text-white mb-4">7. 组件库 Components</h2>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen px-6">
+                    <div class="pt-12 pb-6">
+                        <h1 class="text-2xl font-bold text-white">组件展示</h1>
+                    </div>
+                    
+                    <!-- 按钮 -->
+                    <div class="mb-6">
+                        <p class="text-zinc-500 text-sm mb-3">Buttons</p>
+                        <div class="space-y-3">
+                            <button class="w-full h-14 rounded-2xl bg-[#e8ff47] text-black font-bold">Primary Button</button>
+                            <button class="w-full h-14 rounded-2xl bg-zinc-800 text-white font-semibold">Secondary Button</button>
+                            <button class="w-full h-14 rounded-2xl border border-zinc-700 text-zinc-400 font-semibold">Ghost Button</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 标签 -->
+                    <div class="mb-6">
+                        <p class="text-zinc-500 text-sm mb-3">Tags</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="tag-pill bg-[#e8ff47] text-black">黄色标签</span>
+                            <span class="tag-pill bg-[#a78bfa] text-black">紫色标签</span>
+                            <span class="tag-pill bg-[#67e8f9] text-black">青色标签</span>
+                            <span class="tag-pill bg-zinc-800 text-zinc-400">默认标签</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 输入框 -->
+                    <div class="mb-6">
+                        <p class="text-zinc-500 text-sm mb-3">Inputs</p>
+                        <div class="space-y-3">
+                            <input type="text" placeholder="请输入内容" class="w-full h-14 bg-zinc-900 rounded-2xl px-4 text-white placeholder-zinc-600 border border-zinc-800 focus:border-[#e8ff47] focus:outline-none transition-colors">
+                            <div class="flex gap-3">
+                                <button class="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center text-white">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" value="60" class="flex-1 h-14 bg-zinc-900 rounded-2xl px-4 text-white text-center border border-zinc-800">
+                                <button class="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center text-white">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 卡片 -->
+                    <div class="mb-6">
+                        <p class="text-zinc-500 text-sm mb-3">Cards</p>
+                        <div class="space-y-3">
+                            <div class="h-24 rounded-3xl bg-gradient-to-r from-[#e8ff47] to-[#bef264] p-5 flex items-center justify-between">
+                                <div>
+                                    <p class="text-black/60 text-sm">渐变卡片</p>
+                                    <p class="text-black font-bold text-lg">Gradient Card</p>
+                                </div>
+                                <i class="fas fa-arrow-right text-black text-xl"></i>
+                            </div>
+                            <div class="h-24 rounded-3xl bg-[#1a1a1a] border border-zinc-800 p-5 flex items-center justify-between">
+                                <div>
+                                    <p class="text-zinc-500 text-sm">深色卡片</p>
+                                    <p class="text-white font-bold text-lg">Dark Card</p>
+                                </div>
+                                <i class="fas fa-arrow-right text-zinc-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 图标 -->
+                    <div class="mb-20">
+                        <p class="text-zinc-500 text-sm mb-3">Icons</p>
+                        <div class="grid grid-cols-6 gap-4">
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#e8ff47]/10 flex items-center justify-center">
+                                    <i class="fas fa-home text-[#e8ff47]"></i>
+                                </div>
+                                <span class="text-xs text-zinc-500">首页</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#a78bfa]/10 flex items-center justify-center">
+                                    <i class="fas fa-dumbbell text-[#a78bfa]"></i>
+                                </div>
+                                <span class="text-xs text-zinc-500">训练</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#67e8f9]/10 flex items-center justify-center">
+                                    <i class="fas fa-chart-pie text-[#67e8f9]"></i>
+                                </div>
+                                <span class="text-xs text-zinc-500">统计</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-[#fb923c]/10 flex items-center justify-center">
+                                    <i class="fas fa-fire text-[#fb923c]"></i>
+                                </div>
+                                <span class="text-xs text-zinc-500">热量</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center">
+                                    <i class="fas fa-user text-zinc-400"></i>
+                                </div>
+                                <span class="text-xs text-zinc-500">我的</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center">
+                                    <i class="fas fa-cog text-zinc-400"></i>
+                                </div>
+                                <span class="text-xs text-zinc-500">设置</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. 空状态 -->
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl font-bold text-white mb-4">8. 空状态 Empty</h2>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen px-6 flex flex-col justify-center">
+                    <!-- 空状态1 -->
+                    <div class="text-center mb-12">
+                        <div class="w-32 h-32 rounded-full bg-zinc-900 mx-auto mb-6 flex items-center justify-center border border-zinc-800">
+                            <i class="fas fa-dumbbell text-5xl text-zinc-700"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">还没有训练记录</h2>
+                        <p class="text-zinc-500 mb-6">开始你的第一次训练吧</p>
+                        <button class="h-14 px-8 rounded-2xl bg-[#e8ff47] text-black font-bold">
+                            开始训练
+                        </button>
+                    </div>
+                    
+                    <!-- 分割线 -->
+                    <div class="h-px bg-zinc-800 mb-12"></div>
+                    
+                    <!-- 空状态2 -->
+                    <div class="text-center">
+                        <div class="w-32 h-32 rounded-full bg-zinc-900 mx-auto mb-6 flex items-center justify-center border border-zinc-800">
+                            <i class="fas fa-search text-5xl text-zinc-700"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">没有找到结果</h2>
+                        <p class="text-zinc-500">试试其他关键词</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 设计规范说明 -->
+    <div class="max-w-6xl mx-auto p-8 mt-12">
+        <h2 class="text-3xl font-bold text-white mb-8">重构设计规范</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 色彩 -->
+            <div class="bg-[#141414] rounded-3xl p-6 border border-zinc-800">
+                <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-[#e8ff47]"></div>
+                    高对比色彩
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl" style="background: #e8ff47;"></div>
+                        <div>
+                            <p class="text-white text-sm">荧光黄</p>
+                            <p class="text-zinc-500 text-xs">#e8ff47 · 主强调色</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl" style="background: #a78bfa;"></div>
+                        <div>
+                            <p class="text-white text-sm">亮紫色</p>
+                            <p class="text-zinc-500 text-xs">#a78bfa · 辅助色</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl" style="background: #67e8f9;"></div>
+                        <div>
+                            <p class="text-white text-sm">青色</p>
+                            <p class="text-zinc-500 text-xs">#67e8f9 · 信息色</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#0a0a0a] border border-zinc-800"></div>
+                        <div>
+                            <p class="text-white text-sm">深黑背景</p>
+                            <p class="text-zinc-500 text-xs">#0a0a0a · 主背景</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 排版 -->
+            <div class="bg-[#141414] rounded-3xl p-6 border border-zinc-800">
+                <h3 class="text-white font-semibold mb-4">大字体排版</h3>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-[48px] font-black text-white leading-none">48px</p>
+                        <p class="text-zinc-500 text-sm">超大标题 / 计时器</p>
+                    </div>
+                    <div>
+                        <p class="text-[32px] font-bold text-white">32px Bold</p>
+                        <p class="text-zinc-500 text-sm">页面标题</p>
+                    </div>
+                    <div>
+                        <p class="text-[24px] font-bold text-white">24px Bold</p>
+                        <p class="text-zinc-500 text-sm">卡片标题</p>
+                    </div>
+                    <div>
+                        <p class="text-[16px] text-zinc-400">16px Regular</p>
+                        <p class="text-zinc-500 text-sm">正文内容</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 圆角 -->
+            <div class="bg-[#141414] rounded-3xl p-6 border border-zinc-800">
+                <h3 class="text-white font-semibold mb-4">大圆角设计</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-zinc-800 rounded-[32px]"></div>
+                        <div>
+                            <p class="text-white text-sm">32px</p>
+                            <p class="text-zinc-500 text-xs">大卡片 / 按钮</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-zinc-800 rounded-[24px]"></div>
+                        <div>
+                            <p class="text-white text-sm">24px</p>
+                            <p class="text-zinc-500 text-xs">中等卡片</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-zinc-800 rounded-full"></div>
+                        <div>
+                            <p class="text-white text-sm">Full</p>
+                            <p class="text-zinc-500 text-xs">圆形按钮 / 头像</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 布局 -->
+            <div class="bg-[#141414] rounded-3xl p-6 border border-zinc-800">
+                <h3 class="text-white font-semibold mb-4">沉浸式布局</h3>
+                <ul class="space-y-2 text-zinc-400 text-sm">
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check text-[#e8ff47]"></i>
+                        全屏背景图片/视频
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check text-[#e8ff47]"></i>
+                        底部浮动导航栏
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check text-[#e8ff47]"></i>
+                        卡片堆叠布局
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check text-[#e8ff47]"></i>
+                        横向滚动卡片
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check text-[#e8ff47]"></i>
+                        玻璃态效果
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 组件 -->
+            <div class="bg-[#141414] rounded-3xl p-6 border border-zinc-800">
+                <h3 class="text-white font-semibold mb-4">核心组件</h3>
+                <ul class="space-y-2 text-zinc-400 text-sm">
+                    <li class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-[#e8ff47]"></div>
+                        浮动操作按钮 (FAB)
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-[#a78bfa]"></div>
+                        彩色渐变卡片
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-[#67e8f9]"></div>
+                        环形进度指示器
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-[#fb923c]"></div>
+                        波浪动画效果
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-white"></div>
+                        玻璃态导航栏
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 动效 -->
+            <div class="bg-[#141414] rounded-3xl p-6 border border-zinc-800">
+                <h3 class="text-white font-semibold mb-4">动效设计</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-zinc-400 text-sm">页面切换</span>
+                        <span class="px-3 py-1 rounded-full bg-zinc-800 text-zinc-400 text-xs">slideUp 600ms</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-zinc-400 text-sm">按钮反馈</span>
+                        <span class="px-3 py-1 rounded-full bg-zinc-800 text-zinc-400 text-xs">scale 150ms</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-zinc-400 text-sm">波浪动画</span>
+                        <span class="px-3 py-1 rounded-full bg-zinc-800 text-zinc-400 text-xs">wave 2s infinite</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-zinc-400 text-sm">进度动画</span>
+                        <span class="px-3 py-1 rounded-full bg-zinc-800 text-zinc-400 text-xs">500ms ease</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="text-center py-12 text-zinc-600">
+        <p>FitTrack UI Design System V2.0 | 2026-05-28</p>
+        <p class="text-sm mt-2">大胆重构 · 高对比暗色主题</p>
+    </div>
+
+</body>
+</html>

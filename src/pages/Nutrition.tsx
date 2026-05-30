@@ -1,263 +1,247 @@
 import { useState } from 'react'
-import { Apple, Plus, Utensils, Trash2, Search } from 'lucide-react'
+import { Plus, X, Trash2, ChevronRight } from 'lucide-react'
 import { useAppStore } from '../store'
-import { PRESET_FOODS } from '../constants'
-import { FoodItem } from '../types'
-import { getTodayDateString } from '../utils'
-import NumberInput from '../components/NumberInput'
+import { getTodayString } from '../utils'
+import { FOOD_DATABASE } from '../constants'
+import { ConfirmModal } from '../components/ConfirmModal'
+import type { FoodItem } from '../types'
 
 export default function Nutrition() {
-  const { profile, foodLogs, addFoodLog, updateFoodLog } = useAppStore()
-  const [showAddFood, setShowAddFood] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [customFood, setCustomFood] = useState<FoodItem>(
-    { name: '', calories: 0, protein: 0, carbs: 0, fat: 0 }
-  )
-  const [showCustomFood, setShowCustomFood] = useState(false)
+  const { profile, foodLogs, addFoodLog, deleteFoodLog, updateFoodLog } = useAppStore()
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [selectedFood, setSelectedFood] = useState('')
+  const [quantity, setQuantity] = useState(100)
+  const [foodSearch, setFoodSearch] = useState('')
+  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null)
 
-  const today = getTodayDateString()
-  const todayLog = foodLogs.find(log => log.date === today)
+  const todayLogs = foodLogs.filter((log) => log.date === getTodayString())
+  const targetCalories = profile?.targetCalories || 2400
+  const todayCalories = todayLogs.reduce((sum, log) => sum + log.totalCalories, 0)
+  const todayProtein = todayLogs.reduce((sum, log) => sum + log.totalProtein, 0)
+  const todayCarbs = todayLogs.reduce((sum, log) => sum + log.totalCarbs, 0)
+  const todayFat = todayLogs.reduce((sum, log) => sum + log.totalFat, 0)
+  const calorieProgress = Math.min((todayCalories / targetCalories) * 100, 100)
 
-  const targetCalories = profile ? Math.round(profile.bmr * 1.55) : 2000
-  const remainingCalories = targetCalories - (todayLog?.totalCalories || 0)
+  const handleAddFood = () => {
+    const food = FOOD_DATABASE.find((f) => f.name === selectedFood)
+    if (!food) return
 
-  const filteredPresets = PRESET_FOODS.filter(food =>
-    food.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+    const ratio = quantity / 100
+    const foodItem: FoodItem = {
+      name: food.name,
+      calories: Math.round(food.calories * ratio),
+      protein: Math.round(food.protein * ratio * 10) / 10,
+      carbs: Math.round(food.carbs * ratio * 10) / 10,
+      fat: Math.round(food.fat * ratio * 10) / 10,
+      quantity,
+    }
 
-  const handleAddPresetFood = (food: FoodItem) => {
-    if (todayLog) {
-      updateFoodLog(todayLog.id, {
-        foods: [...todayLog.foods, food],
-      })
+    const currentTodayLog = foodLogs.find((log) => log.date === getTodayString())
+    if (currentTodayLog) {
+      const updatedFoods = [...currentTodayLog.foods, foodItem]
+      updateFoodLog(currentTodayLog.id, { foods: updatedFoods })
     } else {
       addFoodLog({
-        date: today,
-        foods: [food],
+        date: getTodayString(),
+        foods: [foodItem],
       })
     }
-    setShowAddFood(false)
-    setSearchQuery('')
+
+    setSelectedFood('')
+    setQuantity(100)
+    setFoodSearch('')
+    setShowAddModal(false)
   }
 
-  const handleAddCustomFood = () => {
-    if (!customFood.name.trim() || customFood.calories <= 0) return
-    handleAddPresetFood(customFood)
-    setCustomFood({ name: '', calories: 0, protein: 0, carbs: 0, fat: 0 })
-    setShowCustomFood(false)
+  const handleDeleteFood = () => {
+    if (deleteConfirmIndex === null) return
+    const todayLogs = foodLogs.filter((log) => log.date === getTodayString())
+    let remaining = deleteConfirmIndex
+    for (const log of todayLogs) {
+      if (remaining < log.foods.length) {
+        const updatedFoods = log.foods.filter((_, i) => i !== remaining)
+        updateFoodLog(log.id, { foods: updatedFoods })
+        break
+      }
+      remaining -= log.foods.length
+    }
+    setDeleteConfirmIndex(null)
   }
-
-  const handleRemoveFood = (index: number) => {
-    if (!todayLog) return
-    const updatedFoods = todayLog.foods.filter((_, i) => i !== index)
-    updateFoodLog(todayLog.id, { foods: updatedFoods })
-  }
-
-  const calorieProgress = Math.min((todayLog?.totalCalories || 0) / targetCalories * 100, 100)
-  const isOverCalories = remainingCalories < 0
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">营养追踪</h1>
+    <div className="min-h-screen bg-dark-bg">
+      {/* Header */}
+      <header className="px-6 pt-12 pb-4">
+        <h1 className="text-3xl font-bold text-white">营养追踪</h1>
+      </header>
 
-      <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
-        <div className="text-center mb-6">
-          <div className={`text-5xl font-bold mb-2 ${isOverCalories ? 'text-red-500' : 'text-blue-600'}`}>
-            {todayLog?.totalCalories || 0}
-          </div>
-          <div className="text-gray-500">/ {targetCalories} 千卡</div>
-          <div className={`text-sm mt-2 ${isOverCalories ? 'text-red-500' : 'text-green-600'}`}>
-            {isOverCalories ? `超出 ${Math.abs(remainingCalories)} 千卡` : `还剩 ${remainingCalories} 千卡`}
-          </div>
-        </div>
+      {/* Calorie Card */}
+      <section className="px-6 mb-6">
+        <div className="bg-dark-card border border-dark-border rounded-[28px] p-6 text-center">
+          <p className="text-5xl font-black text-white mb-2">{todayCalories}</p>
+          <p className="text-dark-muted text-sm">/ {targetCalories} 千卡</p>
+          <p className="text-neon text-sm mt-2 font-medium">还剩 {targetCalories - todayCalories} 千卡</p>
 
-        <div className="mb-6">
-          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 ${
-                isOverCalories ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'
-              }`}
-              style={{ width: `${calorieProgress}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="text-xl font-bold text-blue-500">{todayLog?.totalProtein || 0}g</div>
-            <div className="text-sm text-gray-500">蛋白质</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-green-500">{todayLog?.totalCarbs || 0}g</div>
-            <div className="text-sm text-gray-500">碳水</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-orange-500">{todayLog?.totalFat || 0}g</div>
-            <div className="text-sm text-gray-500">脂肪</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-gray-800">今日食物</h2>
-        <button
-          onClick={() => setShowAddFood(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          添加食物
-        </button>
-      </div>
-
-      <div className="space-y-3">
-        {todayLog?.foods.map((food, index) => (
-          <div key={index} className="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Apple className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <div className="font-medium text-gray-800">{food.name}</div>
-                <div className="text-sm text-gray-500">
-                  {food.calories} 千卡 · P:{food.protein}g · C:{food.carbs}g · F:{food.fat}g
-                </div>
-              </div>
+          <div className="mt-5 mb-2">
+            <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-neon rounded-full transition-all duration-1000"
+                style={{ width: `${calorieProgress}%` }}
+              />
             </div>
-            <button
-              onClick={() => handleRemoveFood(index)}
-              className="text-gray-400 hover:text-red-500 transition-colors"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
           </div>
-        ))}
 
-        {(!todayLog || todayLog.foods.length === 0) && (
-          <div className="text-center py-12">
-            <Utensils className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">还没有记录食物</h3>
-            <p className="text-gray-400">点击上方按钮添加今天的食物</p>
+          <div className="grid grid-cols-3 gap-4 mt-5">
+            <div className="text-center">
+              <p className="text-xl font-bold text-cyan-accent">{todayProtein}g</p>
+              <p className="text-xs text-dark-muted">蛋白质</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xl font-bold text-neon">{todayCarbs}g</p>
+              <p className="text-xs text-dark-muted">碳水</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xl font-bold text-orange-accent">{todayFat}g</p>
+              <p className="text-xs text-dark-muted">脂肪</p>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
 
-      {showAddFood && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:w-96 max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800">添加食物</h2>
-                <button
-                  onClick={() => {
-                    setShowAddFood(false)
-                    setShowCustomFood(false)
-                    setSearchQuery('')
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
+      {/* Food List */}
+      <section className="px-6 pb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-white">今日食物</h3>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-neon text-dark-bg px-4 py-2 rounded-full text-sm font-bold flex items-center gap-1 shadow-fab"
+          >
+            <Plus className="w-4 h-4" />
+            添加
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {todayLogs.length > 0 ? (
+            todayLogs.map((log, logIndex) => (
+              log.foods.map((food, foodIndex) => (
+                <div
+                  key={`${log.id}-${foodIndex}`}
+                  className="bg-dark-card border border-dark-border rounded-[24px] p-4 flex items-center justify-between"
                 >
-                  ✕
-                </button>
-              </div>
-
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="搜索食物..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              {!showCustomFood ? (
-                <div className="space-y-3">
-                  {filteredPresets.map((food, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleAddPresetFood(food)}
-                      className="w-full p-4 bg-gray-50 rounded-xl text-left hover:bg-gray-100 transition-all flex items-center justify-between"
-                    >
-                      <div>
-                        <div className="font-medium text-gray-800">{food.name}</div>
-                        <div className="text-sm text-gray-500">
-                          {food.calories} 千卡
-                        </div>
-                      </div>
-                      <Plus className="w-5 h-5 text-gray-400" />
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">食物名称</label>
-                    <input
-                      type="text"
-                      value={customFood.name}
-                      onChange={(e) => setCustomFood({ ...customFood, name: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                      placeholder="例如：鸡胸肉"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">热量 (千卡)</label>
-                      <NumberInput
-                        value={customFood.calories}
-                        onChange={(v) => setCustomFood({ ...customFood, calories: v })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                      />
+                  <div className="flex items-center gap-3">
+                    <div className="icon-box bg-neon/10">
+                      <span className="text-neon font-bold text-sm">{food.name.charAt(0)}</span>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">蛋白质 (g)</label>
-                      <NumberInput
-                        value={customFood.protein}
-                        onChange={(v) => setCustomFood({ ...customFood, protein: v })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">碳水 (g)</label>
-                      <NumberInput
-                        value={customFood.carbs}
-                        onChange={(v) => setCustomFood({ ...customFood, carbs: v })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">脂肪 (g)</label>
-                      <NumberInput
-                        value={customFood.fat}
-                        onChange={(v) => setCustomFood({ ...customFood, fat: v })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                      />
+                      <p className="text-white font-medium">{food.name}</p>
+                      <p className="text-xs text-dark-muted">
+                        {food.calories} 千卡 · P:{food.protein}g · C:{food.carbs}g · F:{food.fat}g
+                      </p>
                     </div>
                   </div>
                   <button
-                    onClick={handleAddCustomFood}
-                    disabled={!customFood.name.trim() || customFood.calories <= 0}
-                    className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => {
+                      const currentTodayLog = foodLogs.find((l) => l.date === getTodayString())
+                      if (currentTodayLog) {
+                        const globalIndex = todayLogs
+                          .slice(0, logIndex)
+                          .reduce((sum, l) => sum + l.foods.length, 0) + foodIndex
+                        setDeleteConfirmIndex(globalIndex)
+                      }
+                    }}
+                    className="text-dark-muted hover:text-red-500 transition-colors"
                   >
-                    添加食物
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
-              )}
+              ))
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-dark-muted">今天还没有记录食物</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Add Food Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-end">
+          <div className="absolute inset-0 bg-black/80" onClick={() => setShowAddModal(false)} />
+          <div className="relative w-full bg-dark-card rounded-t-[32px] p-6 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">添加食物</h2>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="w-10 h-10 rounded-full bg-dark-bg flex items-center justify-center"
+              >
+                <X className="w-5 h-5 text-dark-muted" />
+              </button>
             </div>
 
-            <div className="p-6 border-t border-gray-100">
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-dark-muted mb-2 block">选择食物</label>
+                <input
+                  type="text"
+                  value={foodSearch}
+                  onChange={(e) => setFoodSearch(e.target.value)}
+                  placeholder="搜索食物..."
+                  className="w-full bg-dark-bg border border-dark-border rounded-2xl px-4 py-3 text-white placeholder-zinc-600 focus:border-neon focus:outline-none transition-colors mb-3"
+                />
+                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                  {FOOD_DATABASE.filter((food) => 
+                    food.name.toLowerCase().includes(foodSearch.toLowerCase())
+                  ).map((food) => (
+                    <button
+                      key={food.name}
+                      onClick={() => setSelectedFood(food.name)}
+                      className={`p-3 rounded-2xl text-left transition-all ${
+                        selectedFood === food.name
+                          ? 'bg-neon text-dark-bg'
+                          : 'bg-dark-bg border border-dark-border text-white hover:border-zinc-700'
+                      }`}
+                    >
+                      <p className="font-medium text-sm">{food.name}</p>
+                      <p className="text-xs opacity-80">{food.calories} 千卡/100g</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm text-dark-muted mb-2 block">分量 (g)</label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  className="w-full bg-dark-bg border border-dark-border rounded-2xl px-4 py-3 text-white focus:border-neon focus:outline-none transition-colors"
+                />
+              </div>
+
               <button
-                onClick={() => setShowCustomFood(!showCustomFood)}
-                className="w-full bg-gray-100 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-all"
+                onClick={handleAddFood}
+                disabled={!selectedFood}
+                className="w-full bg-neon text-dark-bg py-4 rounded-[32px] font-bold shadow-fab hover:shadow-fab-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {showCustomFood ? '选择预设食物' : '添加自定义食物'}
+                添加
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Delete Confirm Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirmIndex !== null}
+        onClose={() => setDeleteConfirmIndex(null)}
+        onConfirm={handleDeleteFood}
+        title="删除食物"
+        message={`确定要删除这条食物记录吗？`}
+        confirmText="确认删除"
+        danger
+      />
     </div>
   )
 }

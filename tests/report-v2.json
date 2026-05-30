@@ -1,0 +1,362 @@
+{
+  "timestamp": "2026-05-29T12:46:33.784Z",
+  "version": "v2.0",
+  "environment": {
+    "browser": "Chromium",
+    "viewport": "390x844 (移动端)",
+    "baseUrl": "http://localhost:5173",
+    "mode": "headless"
+  },
+  "summary": {
+    "total": 22,
+    "passed": 22,
+    "failed": 0,
+    "passRate": "100.0%"
+  },
+  "details": [
+    {
+      "name": "进入运动页面",
+      "category": "核心流程",
+      "passed": true,
+      "duration": "1125ms",
+      "error": null
+    },
+    {
+      "name": "点击开始训练",
+      "category": "核心流程",
+      "passed": true,
+      "duration": "2023ms",
+      "error": null
+    },
+    {
+      "name": "添加动作流程",
+      "category": "核心流程",
+      "passed": true,
+      "duration": "4ms",
+      "error": null
+    },
+    {
+      "name": "搜索并选择动作",
+      "category": "核心流程",
+      "passed": true,
+      "duration": "3ms",
+      "error": null
+    },
+    {
+      "name": "设置动作参数",
+      "category": "核心流程",
+      "passed": true,
+      "duration": "787ms",
+      "error": null
+    },
+    {
+      "name": "动作库全部分类遍历",
+      "category": "动作库",
+      "passed": true,
+      "duration": "696ms",
+      "error": null
+    },
+    {
+      "name": "动作搜索-无结果",
+      "category": "动作库",
+      "passed": true,
+      "duration": "2ms",
+      "error": null
+    },
+    {
+      "name": "清空搜索恢复列表",
+      "category": "动作库",
+      "passed": true,
+      "duration": "2ms",
+      "error": null
+    },
+    {
+      "name": "进入动作详情",
+      "category": "动作详情",
+      "passed": true,
+      "duration": "593ms",
+      "error": null
+    },
+    {
+      "name": "详情页返回按钮",
+      "category": "动作详情",
+      "passed": true,
+      "duration": "3ms",
+      "error": null
+    },
+    {
+      "name": "动作视频播放按钮",
+      "category": "动作详情",
+      "passed": true,
+      "duration": "578ms",
+      "error": null
+    },
+    {
+      "name": "首页→动作库→首页状态",
+      "category": "状态持久化",
+      "passed": true,
+      "duration": "3352ms",
+      "error": null
+    },
+    {
+      "name": "刷新页面状态丢失(正常行为)",
+      "category": "状态持久化",
+      "passed": true,
+      "duration": "2314ms",
+      "error": null
+    },
+    {
+      "name": "超长搜索输入",
+      "category": "边界条件",
+      "passed": true,
+      "duration": "610ms",
+      "error": null
+    },
+    {
+      "name": "特殊字符输入",
+      "category": "边界条件",
+      "passed": true,
+      "duration": "4ms",
+      "error": null
+    },
+    {
+      "name": "快速连续点击",
+      "category": "边界条件",
+      "passed": true,
+      "duration": "585ms",
+      "error": null
+    },
+    {
+      "name": "首页全部 Quick Action",
+      "category": "首页",
+      "passed": true,
+      "duration": "668ms",
+      "error": null
+    },
+    {
+      "name": "首页滚动行为",
+      "category": "首页",
+      "passed": true,
+      "duration": "1691ms",
+      "error": null
+    },
+    {
+      "name": "首页加载时间",
+      "category": "性能",
+      "passed": true,
+      "duration": "580ms",
+      "error": null
+    },
+    {
+      "name": "动作库加载时间",
+      "category": "性能",
+      "passed": true,
+      "duration": "559ms",
+      "error": null
+    },
+    {
+      "name": "运动页面加载时间",
+      "category": "性能",
+      "passed": true,
+      "duration": "567ms",
+      "error": null
+    },
+    {
+      "name": "全页面控制台错误",
+      "category": "控制台",
+      "passed": true,
+      "duration": "3805ms",
+      "error": null
+    }
+  ],
+  "categories": {
+    "核心流程": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "items": [
+        {
+          "name": "进入运动页面",
+          "passed": true,
+          "duration": "1125ms",
+          "error": null
+        },
+        {
+          "name": "点击开始训练",
+          "passed": true,
+          "duration": "2023ms",
+          "error": null
+        },
+        {
+          "name": "添加动作流程",
+          "passed": true,
+          "duration": "4ms",
+          "error": null
+        },
+        {
+          "name": "搜索并选择动作",
+          "passed": true,
+          "duration": "3ms",
+          "error": null
+        },
+        {
+          "name": "设置动作参数",
+          "passed": true,
+          "duration": "787ms",
+          "error": null
+        }
+      ]
+    },
+    "动作库": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "items": [
+        {
+          "name": "动作库全部分类遍历",
+          "passed": true,
+          "duration": "696ms",
+          "error": null
+        },
+        {
+          "name": "动作搜索-无结果",
+          "passed": true,
+          "duration": "2ms",
+          "error": null
+        },
+        {
+          "name": "清空搜索恢复列表",
+          "passed": true,
+          "duration": "2ms",
+          "error": null
+        }
+      ]
+    },
+    "动作详情": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "items": [
+        {
+          "name": "进入动作详情",
+          "passed": true,
+          "duration": "593ms",
+          "error": null
+        },
+        {
+          "name": "详情页返回按钮",
+          "passed": true,
+          "duration": "3ms",
+          "error": null
+        },
+        {
+          "name": "动作视频播放按钮",
+          "passed": true,
+          "duration": "578ms",
+          "error": null
+        }
+      ]
+    },
+    "状态持久化": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "items": [
+        {
+          "name": "首页→动作库→首页状态",
+          "passed": true,
+          "duration": "3352ms",
+          "error": null
+        },
+        {
+          "name": "刷新页面状态丢失(正常行为)",
+          "passed": true,
+          "duration": "2314ms",
+          "error": null
+        }
+      ]
+    },
+    "边界条件": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "items": [
+        {
+          "name": "超长搜索输入",
+          "passed": true,
+          "duration": "610ms",
+          "error": null
+        },
+        {
+          "name": "特殊字符输入",
+          "passed": true,
+          "duration": "4ms",
+          "error": null
+        },
+        {
+          "name": "快速连续点击",
+          "passed": true,
+          "duration": "585ms",
+          "error": null
+        }
+      ]
+    },
+    "首页": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "items": [
+        {
+          "name": "首页全部 Quick Action",
+          "passed": true,
+          "duration": "668ms",
+          "error": null
+        },
+        {
+          "name": "首页滚动行为",
+          "passed": true,
+          "duration": "1691ms",
+          "error": null
+        }
+      ]
+    },
+    "性能": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "items": [
+        {
+          "name": "首页加载时间",
+          "passed": true,
+          "duration": "580ms",
+          "error": null
+        },
+        {
+          "name": "动作库加载时间",
+          "passed": true,
+          "duration": "559ms",
+          "error": null
+        },
+        {
+          "name": "运动页面加载时间",
+          "passed": true,
+          "duration": "567ms",
+          "error": null
+        }
+      ]
+    },
+    "控制台": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "items": [
+        {
+          "name": "全页面控制台错误",
+          "passed": true,
+          "duration": "3805ms",
+          "error": null
+        }
+      ]
+    }
+  }
+}

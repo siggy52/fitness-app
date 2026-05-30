@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { Profile, WorkoutPlan, WorkoutLog, FoodLog, FatigueRecord, Exercise, FoodItem, DayExercises, ExerciseDefinition, ExerciseStats, PersonalRecord } from '../types'
 import { storage, StorageKeys } from '../utils/storage'
 import { PRESET_EXERCISES } from '../data/exercises'
+import { calculateCombinedFatigue } from '../utils'
 
 const migrateWorkoutPlans = (plans: unknown[]): WorkoutPlan[] => {
   return plans.map((plan: any) => {
@@ -22,12 +23,29 @@ const migrateWorkoutPlans = (plans: unknown[]): WorkoutPlan[] => {
   })
 }
 
+const migrateFatigueRecord = (record: any): FatigueRecord => {
+  if (record.subjectiveLevel === undefined) {
+    return {
+      date: record.date,
+      fatigueLevel: record.fatigueLevel,
+      subjectiveLevel: record.fatigueLevel,
+      calculatedLevel: record.fatigueLevel,
+    }
+  }
+  return record as FatigueRecord
+}
+
+const migrateFatigueRecords = (records: unknown[]): FatigueRecord[] => {
+  return records.map(migrateFatigueRecord)
+}
+
 type AppState = {
   profile: Profile | null
   workoutPlans: WorkoutPlan[]
   workoutLogs: WorkoutLog[]
   foodLogs: FoodLog[]
   fatigueRecords: FatigueRecord[]
+  hasCompletedOnboarding: boolean
 
   timerRunning: boolean
   timerSeconds: number
@@ -35,6 +53,19 @@ type AppState = {
   stopTimer: () => void
   resetTimer: () => void
   tickTimer: () => void
+
+  // 当前运动状态
+  currentWorkout: Exercise[]
+  currentExerciseIndex: number
+  isResting: boolean
+  restSeconds: number
+  setCurrentWorkout: (exercises: Exercise[]) => void
+  setCurrentExerciseIndex: (index: number) => void
+  setIsResting: (resting: boolean) => void
+  setRestSeconds: (seconds: number) => void
+  updateWorkoutExercise: (index: number, field: keyof Exercise, value: number) => void
+  removeWorkoutExercise: (index: number) => void
+  clearCurrentWorkout: () => void
 
   setProfile: (profile: Profile) => void
   updateProfile: (updates: Partial<Profile>) => void
@@ -52,7 +83,9 @@ type AppState = {
   deleteFoodLog: (id: string) => void
 
   addFatigueRecord: (record: FatigueRecord) => void
-  updateFatigueRecord: (date: string, fatigueLevel: number) => void
+  updateFatigueRecord: (date: string, subjectiveLevel: number) => void
+
+  setCompletedOnboarding: (completed: boolean) => void
 
   calculateTotalVolume: (exercises: Exercise[]) => number
   calculateFoodTotals: (foods: FoodItem[]) => { calories: number; protein: number; carbs: number; fat: number }
@@ -66,6 +99,7 @@ type AppState = {
   getExerciseById: (id: string) => ExerciseDefinition | undefined
   getExerciseStats: (exerciseName: string) => ExerciseStats
   getRecentlyUsedExercises: (limit?: number) => ExerciseDefinition[]
+  clearAllData: () => void
 }
 
 const generateId = (): string => {
@@ -97,14 +131,21 @@ export const useAppStore = create<AppState>((set, get) => {
 
   const customExercises = storage.get<ExerciseDefinition[]>(StorageKeys.CUSTOM_EXERCISES, [])
 
+  const migragedFatigueRecords = migrateFatigueRecords(storage.get<unknown[]>(StorageKeys.FATIGUE_RECORDS, []))
+
   const initialState = {
     profile: storage.get<Profile | null>(StorageKeys.PROFILE, null),
     workoutPlans: migratedPlans,
     workoutLogs: storage.get<WorkoutLog[]>(StorageKeys.WORKOUT_LOGS, []),
     foodLogs: storage.get<FoodLog[]>(StorageKeys.FOOD_LOGS, []),
-    fatigueRecords: storage.get<FatigueRecord[]>(StorageKeys.FATIGUE_RECORDS, []),
+    fatigueRecords: migragedFatigueRecords,
+    hasCompletedOnboarding: storage.get<boolean>('fitness-app_onboarding', false),
     timerRunning: false,
     timerSeconds: 0,
+    currentWorkout: [],
+    currentExerciseIndex: 0,
+    isResting: false,
+    restSeconds: 0,
     exercises: PRESET_EXERCISES,
     customExercises,
   }
@@ -125,10 +166,51 @@ export const useAppStore = create<AppState>((set, get) => {
       return { timerSeconds: state.timerSeconds + 1 }
     }),
 
+    // 当前运动状态管理
+    setCurrentWorkout: (exercises) => set({ currentWorkout: exercises }),
+    
+    setCurrentExerciseIndex: (index) => set({ currentExerciseIndex: index }),
+    
+    setIsResting: (resting) => set({ isResting: resting }),
+    
+    setRestSeconds: (seconds) => set({ restSeconds: seconds }),
+    
+    updateWorkoutExercise: (index, field, value) =>
+      set((state) => {
+        const updated = [...state.currentWorkout]
+        let clampedValue = value
+        if (field === 'weight') {
+          clampedValue = Math.max(0, Math.min(500, value))
+        } else if (field === 'sets') {
+          clampedValue = Math.max(1, Math.min(20, value))
+        } else if (field === 'reps') {
+          clampedValue = Math.max(1, Math.min(50, value))
+        } else if (field === 'rpe') {
+          clampedValue = Math.max(1, Math.min(10, value))
+        } else if (field === 'completedSets') {
+          clampedValue = Math.max(0, Math.min(50, value))
+        }
+        updated[index] = { ...updated[index], [field]: clampedValue }
+        return { ...state, currentWorkout: updated }
+      }),
+    
+    removeWorkoutExercise: (index) =>
+      set((state) => {
+        const updated = state.currentWorkout.filter((_, i) => i !== index)
+        let newIndex = state.currentExerciseIndex
+        if (newIndex >= updated.length && newIndex > 0) {
+          newIndex = updated.length - 1
+        }
+        return { ...state, currentWorkout: updated, currentExerciseIndex: newIndex }
+      }),
+    
+    clearCurrentWorkout: () => set({ currentWorkout: [], currentExerciseIndex: 0, isResting: false, restSeconds: 0 }),
+
     setProfile: (profile) =>
       set((state) => {
         storage.set(StorageKeys.PROFILE, profile)
-        return { ...state, profile }
+        storage.set('fitness-app_onboarding', true)
+        return { ...state, profile, hasCompletedOnboarding: true }
       }),
 
     updateProfile: (updates) =>
@@ -222,31 +304,46 @@ export const useAppStore = create<AppState>((set, get) => {
       }),
 
     addFatigueRecord: (record) =>
-      set((state) => {
-        const existingIndex = state.fatigueRecords.findIndex((r) => r.date === record.date)
-        let newRecords
-        if (existingIndex !== -1) {
-          newRecords = [...state.fatigueRecords]
-          newRecords[existingIndex] = record
-        } else {
-          newRecords = [...state.fatigueRecords, record]
-        }
-        storage.set(StorageKeys.FATIGUE_RECORDS, newRecords)
-        return { ...state, fatigueRecords: newRecords }
-      }),
+    set((state) => {
+      const todayLogs = state.workoutLogs.filter((log) => log.date === record.date)
+      const { calculatedLevel, combinedLevel } = calculateCombinedFatigue(todayLogs, record.subjectiveLevel)
+      const newRecord: FatigueRecord = {
+        ...record,
+        fatigueLevel: combinedLevel,
+        calculatedLevel,
+      }
+      const existingIndex = state.fatigueRecords.findIndex((r) => r.date === record.date)
+      let newRecords
+      if (existingIndex !== -1) {
+        newRecords = [...state.fatigueRecords]
+        newRecords[existingIndex] = newRecord
+      } else {
+        newRecords = [...state.fatigueRecords, newRecord]
+      }
+      storage.set(StorageKeys.FATIGUE_RECORDS, newRecords)
+      return { ...state, fatigueRecords: newRecords }
+    }),
 
-    updateFatigueRecord: (date, fatigueLevel) =>
+  updateFatigueRecord: (date, subjectiveLevel) =>
+    set((state) => {
+      const todayLogs = state.workoutLogs.filter((log) => log.date === date)
+      const { calculatedLevel, combinedLevel } = calculateCombinedFatigue(todayLogs, subjectiveLevel)
+      const existingIndex = state.fatigueRecords.findIndex((r) => r.date === date)
+      let newRecords
+      if (existingIndex !== -1) {
+        newRecords = [...state.fatigueRecords]
+        newRecords[existingIndex] = { ...newRecords[existingIndex], subjectiveLevel, fatigueLevel: combinedLevel, calculatedLevel }
+      } else {
+        newRecords = [...state.fatigueRecords, { date, subjectiveLevel, fatigueLevel: combinedLevel, calculatedLevel }]
+      }
+      storage.set(StorageKeys.FATIGUE_RECORDS, newRecords)
+      return { ...state, fatigueRecords: newRecords }
+    }),
+
+    setCompletedOnboarding: (completed) =>
       set((state) => {
-        const existingIndex = state.fatigueRecords.findIndex((r) => r.date === date)
-        let newRecords
-        if (existingIndex !== -1) {
-          newRecords = [...state.fatigueRecords]
-          newRecords[existingIndex] = { ...newRecords[existingIndex], fatigueLevel }
-        } else {
-          newRecords = [...state.fatigueRecords, { date, fatigueLevel }]
-        }
-        storage.set(StorageKeys.FATIGUE_RECORDS, newRecords)
-        return { ...state, fatigueRecords: newRecords }
+        storage.set('fitness-app_onboarding', completed)
+        return { ...state, hasCompletedOnboarding: completed }
       }),
 
     addCustomExercise: (exercise) =>
@@ -363,6 +460,15 @@ export const useAppStore = create<AppState>((set, get) => {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, limit)
         .map((item) => item.exercise)
+    },
+
+    clearAllData: () => {
+      storage.remove(StorageKeys.PROFILE)
+      storage.remove(StorageKeys.WORKOUT_PLANS)
+      storage.remove(StorageKeys.WORKOUT_LOGS)
+      storage.remove(StorageKeys.FOOD_LOGS)
+      storage.remove(StorageKeys.CUSTOM_EXERCISES)
+      window.location.reload()
     },
   }
 })

@@ -1,406 +1,497 @@
-import { useState } from 'react'
-import { Dumbbell, Play, Pause, RotateCcw, Plus, Save, Trash2, Clock } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ArrowLeft, Minus, Plus, Check, RotateCcw, Play, Pause, Trash2 } from 'lucide-react'
 import { useAppStore } from '../store'
-import { Exercise, WorkoutPlan } from '../types'
-import NumberInput from '../components/NumberInput'
-import { formatTime, getTodayDateString, calculateFatigueFromWorkout, getCurrentFatigueLevel, getSuggestedWeight, shouldDeload, getConsecutiveWorkoutDays } from '../utils'
-import ExerciseSelector from '../components/ExerciseSelector'
+import { ExerciseSelector } from '../components/ExerciseSelector'
+import { NumberInput } from '../components/NumberInput'
+import Toast from '../components/Toast'
+import { getTodayString, formatDate, getSuggestedWeight, shouldDeload, getConsecutiveWorkoutDays } from '../utils'
 import { useLastTrainingData } from '../hooks/useLastTrainingData'
+import type { Exercise, ToastMessage } from '../types'
 
 export default function Workout() {
   const navigate = useNavigate()
-  const { addWorkoutLog, addFatigueRecord, fatigueRecords, workoutLogs, workoutPlans, timerRunning, timerSeconds, startTimer, stopTimer, resetTimer } = useAppStore()
+  const { 
+    workoutPlans, 
+    workoutLogs, 
+    addWorkoutLog, 
+    startTimer, 
+    stopTimer, 
+    resetTimer, 
+    timerRunning, 
+    timerSeconds, 
+    tickTimer,
+    currentWorkout,
+    currentExerciseIndex,
+    isResting,
+    restSeconds,
+    setCurrentWorkout,
+    setCurrentExerciseIndex,
+    setIsResting,
+    setRestSeconds,
+    updateWorkoutExercise,
+    removeWorkoutExercise,
+    clearCurrentWorkout
+  } = useAppStore()
   const getLastTrainingData = useLastTrainingData()
-
-  const [exercises, setExercises] = useState<Exercise[]>([])
-  const [showAddExercise, setShowAddExercise] = useState(false)
   const [showExerciseSelector, setShowExerciseSelector] = useState(false)
-  const [newExercise, setNewExercise] = useState<Omit<Exercise, 'name'>>(
-    { weight: 0, sets: 3, reps: 10, rpe: 7 }
-  )
-  const [exerciseName, setExerciseName] = useState('')
   const [showPlanSelector, setShowPlanSelector] = useState(false)
-  const [selectedPlanForDays, setSelectedPlanForDays] = useState<WorkoutPlan | null>(null)
-
-  const handleAddExercise = () => {
-    if (!exerciseName.trim()) return
-    setExercises([...exercises, { name: exerciseName, ...newExercise }])
-    setExerciseName('')
-    setNewExercise({ weight: 0, sets: 3, reps: 10, rpe: 7 })
-    setShowAddExercise(false)
+  const [workoutStarted, setWorkoutStarted] = useState(false)
+  const [toasts, setToasts] = useState<ToastMessage[]>([])
+  const intervalRef = useRef<ReturnType<typeof setInterval>>()
+  const restIntervalRef = useRef<ReturnType<typeof setInterval>>()
+  
+  const addToast = (type: ToastMessage['type'], message: string) => {
+    const id = Date.now().toString()
+    setToasts((prev) => [...prev, { id, type, message }])
+  }
+  
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
   }
 
-  const handleSelectFromLibrary = (name: string) => {
-    const lastData = getLastTrainingData(name)
-    setExercises([...exercises, {
-      name,
-      weight: lastData?.lastWeight ?? 0,
+  const waveAnimations = useMemo(() => {
+    return Array.from({ length: 15 }).map((_, i) => ({
+      height: `${20 + Math.random() * 40}px`,
+      animationDelay: `${i * 0.1}s`,
+      opacity: 0.6 + Math.random() * 0.4,
+    }))
+  }, [])
+
+  useEffect(() => {
+    if (timerRunning) {
+      intervalRef.current = setInterval(() => {
+        tickTimer()
+      }, 1000)
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [timerRunning, tickTimer])
+
+  const currentExercise = currentWorkout[currentExerciseIndex]
+
+  useEffect(() => {
+    if (isResting && restSeconds > 0) {
+      restIntervalRef.current = setInterval(() => {
+        const newSeconds = restSeconds - 1
+        if (newSeconds <= 1) {
+          setIsResting(false)
+          setRestSeconds(0)
+          if (currentExercise && currentExercise.sets > 1) {
+            updateWorkoutExercise(currentExerciseIndex, 'sets', currentExercise.sets - 1)
+          }
+        } else {
+          setRestSeconds(newSeconds)
+        }
+      }, 1000)
+    }
+    return () => {
+      if (restIntervalRef.current) clearInterval(restIntervalRef.current)
+    }
+  }, [isResting, restSeconds, currentExerciseIndex, currentExercise])
+
+  useEffect(() => {
+    if (currentWorkout.length > 0 && !workoutStarted) {
+      setWorkoutStarted(true)
+    }
+  }, [currentWorkout.length, workoutStarted])
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const handleAddExercise = (exerciseName: string) => {
+    if (currentWorkout.some(ex => ex.name === exerciseName)) {
+      addToast('error', `${exerciseName} 已添加`)
+      setShowExerciseSelector(false)
+      return
+    }
+    const last = getLastTrainingData(exerciseName)
+    const exercise: Exercise = {
+      name: exerciseName,
+      weight: last?.lastWeight || 0,
       sets: 3,
-      reps: lastData?.lastReps ?? 10,
+      reps: last?.lastReps || 10,
       rpe: 7,
-    }])
-    setNewExercise({ weight: 0, sets: 3, reps: 10, rpe: 7 })
+      completedSets: 0,
+    }
+    setCurrentWorkout([...currentWorkout, exercise])
+    setShowExerciseSelector(false)
   }
 
-  const handleRemoveExercise = (index: number) => {
-    setExercises(exercises.filter((_, i) => i !== index))
-  }
-
-  const handleSelectPlan = (plan: WorkoutPlan) => {
-    setSelectedPlanForDays(plan)
-  }
-
-  const handleAddDayExercises = (dayExercises: Exercise[]) => {
-    const enriched = dayExercises.map((ex) => {
-      const lastData = getLastTrainingData(ex.name)
-      return lastData ? { ...ex, weight: lastData.lastWeight, reps: lastData.lastReps } : ex
-    })
-    setExercises([...exercises, ...enriched])
-    setSelectedPlanForDays(null)
+  const handleAddFromPlan = (planId: string) => {
+    const plan = workoutPlans.find((p) => p.id === planId)
+    if (plan) {
+      const today = new Date().getDay()
+      const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+      const todayName = dayNames[today]
+      const dayPlan = plan.trainingDays.find((d) => d.day === todayName)
+      if (dayPlan) {
+        const exercisesWithCompletedSets = dayPlan.exercises.map(ex => ({ ...ex, completedSets: 0 }))
+        setCurrentWorkout(exercisesWithCompletedSets)
+        addToast('success', `已添加 ${plan.name} 的${todayName}训练`)
+      } else {
+        addToast('error', `${plan.name}中没有${todayName}的训练安排`)
+      }
+    }
     setShowPlanSelector(false)
   }
 
   const handleSaveWorkout = () => {
-    if (exercises.length === 0) return
-
+    if (currentWorkout.length === 0) return
     addWorkoutLog({
-      date: getTodayDateString(),
-      exercises,
+      date: getTodayString(),
+      exercises: currentWorkout,
     })
-
-    const currentFatigue = getCurrentFatigueLevel(fatigueRecords)
-    const newFatigue = Math.min(100, currentFatigue + calculateFatigueFromWorkout(exercises))
-    addFatigueRecord({
-      date: getTodayDateString(),
-      fatigueLevel: newFatigue,
-    })
-
     resetTimer()
-    navigate('/home')
+    clearCurrentWorkout()
+    addToast('success', '训练记录已保存！')
   }
 
-  const updateExercise = (index: number, updates: Partial<Exercise>) => {
-    const updated = [...exercises]
-    updated[index] = { ...updated[index], ...updates }
-    setExercises(updated)
+  const handleCompleteSet = () => {
+    if (!currentExercise) return
+
+    if (currentExercise.weight === 0) {
+      addToast('error', '请先设置重量')
+      return
+    }
+
+    const completedSets = (currentExercise.completedSets || 0) + 1
+
+    if (currentExercise.sets <= 1) {
+      updateWorkoutExercise(currentExerciseIndex, 'completedSets', completedSets)
+      if (currentExerciseIndex < currentWorkout.length - 1) {
+        setCurrentExerciseIndex(currentExerciseIndex + 1)
+        setIsResting(false)
+        setRestSeconds(0)
+        addToast('success', `已完成 ${currentExercise.name}，下一个！`)
+      } else {
+        setIsResting(false)
+        setRestSeconds(0)
+        addToast('success', '恭喜！所有动作已完成！')
+      }
+    } else {
+      updateWorkoutExercise(currentExerciseIndex, 'sets', currentExercise.sets - 1)
+      updateWorkoutExercise(currentExerciseIndex, 'completedSets', completedSets)
+      setIsResting(true)
+      setRestSeconds(60)
+    }
   }
 
   return (
-    <div className="p-4 pb-24">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">开始训练</h1>
-
-      <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-6 text-white mb-6 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Clock className="w-6 h-6" />
-            <span className="text-lg">训练时长</span>
-          </div>
-        </div>
-        <div className="text-5xl font-bold text-center mb-6 font-mono">
-          {formatTime(timerSeconds)}
-        </div>
-        <div className="flex justify-center gap-4">
-          <button
-            onClick={() => timerRunning ? stopTimer() : startTimer()}
-            className="bg-white text-blue-600 px-8 py-3 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-100 transition-all active:scale-95"
-          >
-            {timerRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-            {timerRunning ? '暂停' : '开始'}
-          </button>
-          <button
-            onClick={resetTimer}
-            className="bg-white/20 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 hover:bg-white/30 transition-all"
-          >
-            <RotateCcw className="w-5 h-5" />
-            重置
-          </button>
-        </div>
+    <div className="min-h-screen bg-dark-bg relative">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=1200&fit=crop"
+          alt="Workout Background"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/80 to-dark-bg/40" />
       </div>
 
-      {exercises.length === 0 && (() => {
-        const currentFatigue = getCurrentFatigueLevel(fatigueRecords)
-        const consecutiveDays = getConsecutiveWorkoutDays(workoutLogs)
-        const deload = shouldDeload(currentFatigue, consecutiveDays)
-        return (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <p className="text-sm text-amber-700">
-              {deload.shouldDeload
-                ? deload.reason
-                : currentFatigue > 50
-                  ? `当前疲劳值 ${Math.round(currentFatigue)}，建议适当降低训练强度。`
-                  : '体能状态良好，开始今天的训练吧！'}
-            </p>
-          </div>
-        )
-      })()}
-
-      <div className="flex gap-3 mb-6">
-        <button
-          onClick={() => setShowExerciseSelector(true)}
-          className="flex-1 bg-white border-2 border-dashed border-gray-300 text-gray-600 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:border-blue-400 hover:text-blue-500 transition-all"
-        >
-          <Plus className="w-5 h-5" />
-          添加动作
-        </button>
-        {workoutPlans.length > 0 && (
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Header */}
+        <header className="px-6 pt-12 pb-4 flex items-center justify-between">
           <button
-            onClick={() => setShowPlanSelector(true)}
-            className="bg-white border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-xl font-semibold hover:border-blue-400 hover:text-blue-500 transition-all"
+            onClick={() => navigate('/home')}
+            className="glass w-10 h-10 rounded-full flex items-center justify-center"
           >
-            从计划添加
+            <ArrowLeft className="w-5 h-5 text-white" />
           </button>
-        )}
-      </div>
+        </header>
 
-      <div className="space-y-4">
-        {exercises.map((exercise, index) => {
-          const suggestion = getSuggestedWeight(exercise.name, workoutLogs)
-          return (
-          <div key={index} className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Dumbbell className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg text-gray-800">{exercise.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    {suggestion.suggestedWeight > 0 && (
-                      <span className="text-xs text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
-                        建议 {suggestion.suggestedWeight}kg
-                      </span>
-                    )}
-                    {suggestion.progress === 'plateau' && (
-                      <span className="text-xs text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
-                        平台期
-                      </span>
-                    )}
-                    {suggestion.progress === 'up' && suggestion.lastWeight > 0 && (
-                      <span className="text-xs text-green-500 bg-green-50 px-2 py-0.5 rounded-full">
-                        +2.5kg ↑
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+        {currentWorkout.length === 0 ? (
+          /* Empty State */
+          <div className="flex-1 flex flex-col items-center justify-center px-6">
+            <div className="w-20 h-20 rounded-full bg-neon/10 flex items-center justify-center mb-6">
+              <Play className="w-10 h-10 text-neon" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">开始训练</h2>
+            <p className="text-dark-muted text-center mb-8">添加动作开始记录你的训练</p>
+            <div className="flex gap-4 w-full">
               <button
-                onClick={() => handleRemoveExercise(index)}
-                className="text-gray-400 hover:text-red-500 transition-colors"
+                onClick={() => setShowExerciseSelector(true)}
+                className="flex-1 bg-neon text-dark-bg py-4 rounded-[32px] font-bold text-lg shadow-fab hover:shadow-fab-hover transition-all"
               >
-                <Trash2 className="w-5 h-5" />
+                添加动作
+              </button>
+              <button
+                onClick={() => setShowPlanSelector(true)}
+                className="flex-1 bg-dark-card border border-dark-border text-white py-4 rounded-[32px] font-bold text-lg hover:border-zinc-700 transition-colors"
+              >
+                从计划添加
               </button>
             </div>
+          </div>
+        ) : (
+          /* Active Workout */
+          <div className={`flex-1 flex flex-col px-6 ${workoutStarted ? 'animate-workout-start' : ''}`}>
+            {/* Tags */}
+            <div className="flex gap-3 mb-6">
+              <span className="tag-pill glass text-white text-xs">
+                {formatDate(getTodayString())}
+              </span>
+              <span className="tag-pill bg-neon text-dark-bg text-xs">
+                第 {currentExerciseIndex + 1}/{currentWorkout.length} 个动作
+              </span>
+            </div>
 
-            <div className="grid grid-cols-4 gap-3">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">重量 (kg)</label>
-                <NumberInput
-                  value={exercise.weight}
-                  onChange={(v) => updateExercise(index, { weight: v })}
-                  min={0}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">组数</label>
-                <NumberInput
-                  value={exercise.sets}
-                  onChange={(v) => updateExercise(index, { sets: v })}
-                  min={1}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">次数</label>
-                <NumberInput
-                  value={exercise.reps}
-                  onChange={(v) => updateExercise(index, { reps: v })}
-                  min={1}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">RPE</label>
-                <NumberInput
-                  value={exercise.rpe}
-                  min={1}
-                  max={10}
-                  onChange={(v) => updateExercise(index, { rpe: Math.min(10, Math.max(1, v)) })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center"
-                />
+            {/* Exercise Name */}
+            {currentExercise && (
+              <>
+                <h1 className="text-4xl font-black text-white mb-2">
+                  {currentExercise.name}
+                </h1>
+                <p className="text-lg text-dark-muted mb-2">
+                  {currentExercise.sets} 组 x {currentExercise.reps} 次
+                </p>
+
+                {/* Suggestion Tags */}
+                {(() => {
+                  const suggestion = getSuggestedWeight(currentExercise.name, workoutLogs)
+                  const consecutive = getConsecutiveWorkoutDays(workoutLogs)
+                  const deload = shouldDeload(0, consecutive)
+                  return (
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {suggestion.suggestedWeight > 0 && (
+                        <span className="text-xs text-cyan-accent bg-cyan-accent/10 px-2.5 py-1 rounded-full">
+                          建议 {suggestion.suggestedWeight}kg
+                        </span>
+                      )}
+                      {suggestion.progress === 'plateau' && (
+                        <span className="text-xs text-orange-accent bg-orange-accent/10 px-2.5 py-1 rounded-full">
+                          平台期
+                        </span>
+                      )}
+                      {suggestion.progress === 'up' && suggestion.lastWeight > 0 && (
+                        <span className="text-xs text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full">
+                          +2.5kg ↑
+                        </span>
+                      )}
+                      {deload.shouldDeload && (
+                        <span className="text-xs text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full">
+                          建议减载
+                        </span>
+                      )}
+                    </div>
+                  )
+                })()}
+
+                {/* Timer */}
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="text-[80px] font-black text-white leading-none mb-8">
+                    {isResting ? formatTime(restSeconds) : formatTime(timerSeconds)}
+                  </div>
+
+                  {/* Wave Animation */}
+                  <div className="flex items-end gap-1 h-16 mb-8">
+                    {waveAnimations.map((anim, i) => (
+                      <div
+                        key={i}
+                        className="w-1 bg-neon rounded-full animate-wave"
+                        style={{
+                          height: anim.height,
+                          animationDelay: anim.animationDelay,
+                          opacity: anim.opacity,
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Timer Controls */}
+                  <div className="flex gap-4">
+                    <button
+                      onClick={timerRunning ? stopTimer : startTimer}
+                      className="glass w-16 h-16 rounded-full flex items-center justify-center"
+                    >
+                      {timerRunning ? (
+                        <Pause className="w-8 h-8 text-white" />
+                      ) : (
+                        <Play className="w-8 h-8 text-white ml-1" />
+                      )}
+                    </button>
+                    <button
+                      onClick={resetTimer}
+                      className="glass w-16 h-16 rounded-full flex items-center justify-center"
+                    >
+                      <RotateCcw className="w-6 h-6 text-white" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bottom Data */}
+                <div className="bg-dark-card border border-dark-border rounded-[32px] p-6 mb-4">
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="text-center">
+                      <p className="text-xs text-dark-muted mb-1">重量</p>
+                      <p className="text-2xl font-black text-white">{currentExercise.weight}</p>
+                      <p className="text-xs text-dark-muted">kg</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-dark-muted mb-1">组数</p>
+                      <p className="text-2xl font-black text-white">{currentExercise.completedSets || 0}/{currentExercise.sets}</p>
+                      <p className="text-xs text-dark-muted">组</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-dark-muted mb-1">次数</p>
+                      <p className="text-2xl font-black text-white">{currentExercise.reps}</p>
+                      <p className="text-xs text-dark-muted">次</p>
+                    </div>
+                  </div>
+
+                  {/* Input Controls */}
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => updateWorkoutExercise(currentExerciseIndex, 'weight', Math.max(0, currentExercise.weight - 2.5))}
+                        className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-white"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => updateWorkoutExercise(currentExerciseIndex, 'weight', currentExercise.weight + 2.5)}
+                        className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-white"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => updateWorkoutExercise(currentExerciseIndex, 'sets', currentExercise.sets - 1)}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-white transition-colors ${
+                          currentExercise.sets <= 1 ? 'bg-zinc-900 text-zinc-600 cursor-not-allowed' : 'bg-zinc-800 hover:bg-zinc-700'
+                        }`}
+                        disabled={currentExercise.sets <= 1}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => updateWorkoutExercise(currentExerciseIndex, 'sets', currentExercise.sets + 1)}
+                        className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-white hover:bg-zinc-700 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => updateWorkoutExercise(currentExerciseIndex, 'reps', currentExercise.reps - 1)}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-white transition-colors ${
+                          currentExercise.reps <= 1 ? 'bg-zinc-900 text-zinc-600 cursor-not-allowed' : 'bg-zinc-800 hover:bg-zinc-700'
+                        }`}
+                        disabled={currentExercise.reps <= 1}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => updateWorkoutExercise(currentExerciseIndex, 'reps', currentExercise.reps + 1)}
+                        className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-white"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setCurrentExerciseIndex(Math.max(0, currentExerciseIndex - 1))}
+                      className="flex-1 bg-zinc-800 text-white py-4 rounded-[24px] font-bold hover:bg-zinc-700 transition-colors"
+                    >
+                      上一个
+                    </button>
+                    <button
+                      onClick={handleCompleteSet}
+                      className="flex-1 bg-neon text-dark-bg py-4 rounded-[24px] font-bold shadow-fab hover:shadow-fab-hover transition-all"
+                    >
+                      完成组
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Exercise List */}
+            <div className="mb-4">
+              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                {currentWorkout.map((ex, i) => (
+                  <div key={i} className="flex-shrink-0 flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentExerciseIndex(i)}
+                      className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                        i === currentExerciseIndex
+                          ? 'bg-neon text-dark-bg'
+                          : 'bg-dark-card border border-dark-border text-dark-muted'
+                      }`}
+                    >
+                      {ex.name}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeWorkoutExercise(i)
+                      }}
+                      className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 hover:bg-red-500/20 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setShowExerciseSelector(true)}
+                  className="flex-shrink-0 w-10 h-10 rounded-full bg-neon/20 border border-neon/30 flex items-center justify-center text-neon hover:bg-neon/30 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          </div>
-        )
-      })}
 
-        {exercises.length === 0 && (
-          <div className="text-center py-12">
-            <Dumbbell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">还没有添加动作</h3>
-            <p className="text-gray-400">点击上方按钮添加训练动作</p>
+            {/* Save Button */}
+            <button
+              onClick={handleSaveWorkout}
+              className="w-full bg-neon text-dark-bg py-4 rounded-[32px] font-bold text-lg shadow-fab hover:shadow-fab-hover transition-all mb-8"
+            >
+              保存训练记录
+            </button>
           </div>
         )}
       </div>
 
-      {exercises.length > 0 && (
-        <button
-          onClick={handleSaveWorkout}
-          className="fixed bottom-24 left-4 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all active:scale-95"
-        >
-          <Save className="w-5 h-5" />
-          保存训练记录
-        </button>
-      )}
-
+      {/* Exercise Selector Modal */}
       {showExerciseSelector && (
         <ExerciseSelector
-          onSelect={handleSelectFromLibrary}
+          onSelect={handleAddExercise}
           onClose={() => setShowExerciseSelector(false)}
         />
       )}
 
-      {showAddExercise && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:w-96">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800">手动添加动作</h2>
-                <button
-                  onClick={() => setShowAddExercise(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">动作名称</label>
-                  <input
-                    type="text"
-                    value={exerciseName}
-                    onChange={(e) => setExerciseName(e.target.value)}
-                    placeholder="例如：卧推、深蹲"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">重量 (kg)</label>
-                    <NumberInput
-                      value={newExercise.weight}
-                      onChange={(v) => setNewExercise({ ...newExercise, weight: v })}
-                      min={0}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">组数</label>
-                    <NumberInput
-                      value={newExercise.sets}
-                      onChange={(v) => setNewExercise({ ...newExercise, sets: v })}
-                      min={1}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">次数</label>
-                    <NumberInput
-                      value={newExercise.reps}
-                      onChange={(v) => setNewExercise({ ...newExercise, reps: v })}
-                      min={1}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">RPE (1-10)</label>
-                    <NumberInput
-                      value={newExercise.rpe}
-                      min={1}
-                      max={10}
-                      onChange={(v) => setNewExercise({ ...newExercise, rpe: Math.min(10, Math.max(1, v)) })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleAddExercise}
-                  disabled={!exerciseName.trim()}
-                  className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Plus className="w-5 h-5" />
-                  添加动作
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Plan Selector Modal */}
       {showPlanSelector && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:w-96 max-h-[70vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800">
-                  {selectedPlanForDays ? `选择训练日 - ${selectedPlanForDays.name}` : '从计划选择'}
-                </h2>
+        <div className="fixed inset-0 z-50 flex items-end">
+          <div className="absolute inset-0 bg-black/80" onClick={() => setShowPlanSelector(false)} />
+          <div className="relative w-full bg-dark-card rounded-t-[32px] p-6 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-white mb-4">选择计划</h2>
+            <div className="space-y-3">
+              {workoutPlans.map((plan) => (
                 <button
-                  onClick={() => {
-                    if (selectedPlanForDays) {
-                      setSelectedPlanForDays(null)
-                    } else {
-                      setShowPlanSelector(false)
-                    }
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
+                  key={plan.id}
+                  onClick={() => handleAddFromPlan(plan.id)}
+                  className="w-full bg-dark-bg border border-dark-border rounded-[24px] p-4 text-left hover:border-zinc-700 transition-colors"
                 >
-                  ✕
+                  <h3 className="text-white font-bold">{plan.name}</h3>
+                  <p className="text-dark-muted text-sm">{plan.description}</p>
                 </button>
-              </div>
-
-              {!selectedPlanForDays ? (
-                <div className="space-y-3">
-                  {workoutPlans.map((plan) => (
-                    <button
-                      key={plan.id}
-                      onClick={() => handleSelectPlan(plan)}
-                      className="w-full p-4 bg-gray-50 rounded-xl text-left hover:bg-gray-100 transition-all"
-                    >
-                      <div className="font-semibold text-gray-800">{plan.name}</div>
-                      <div className="text-sm text-gray-500">{plan.trainingDays.length} 个训练日</div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {selectedPlanForDays.trainingDays.map((day, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleAddDayExercises(day.exercises)}
-                      className="w-full p-4 bg-gray-50 rounded-xl text-left hover:bg-gray-100 transition-all"
-                    >
-                      <div className="font-semibold text-gray-800">{day.day}</div>
-                      <div className="text-sm text-gray-500">
-                        {day.exercises.length} 个动作
-                        {day.exercises.length > 0 && (
-                          <span className="text-gray-400 ml-1">
-                            · {day.exercises.map(e => e.name).join('、')}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
       )}
+      
+      <Toast messages={toasts} onRemove={removeToast} />
     </div>
   )
 }

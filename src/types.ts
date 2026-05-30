@@ -1,9 +1,11 @@
 export type Profile = {
+  name: string
   height: number
   weight: number
   age: number
   gender: 'male' | 'female'
   bmr: number
+  targetCalories: number
 }
 
 export type Exercise = {
@@ -12,6 +14,7 @@ export type Exercise = {
   sets: number
   reps: number
   rpe: number
+  completedSets?: number
 }
 
 export type DayExercises = {
@@ -39,6 +42,7 @@ export type FoodItem = {
   protein: number
   carbs: number
   fat: number
+  quantity?: number
 }
 
 export type FoodLog = {
@@ -54,6 +58,8 @@ export type FoodLog = {
 export type FatigueRecord = {
   date: string
   fatigueLevel: number
+  subjectiveLevel: number
+  calculatedLevel: number
 }
 
 export type ExerciseCategory =
@@ -82,23 +88,6 @@ export type MuscleGroup =
   | 'lower-back'
   | 'full-body'
 
-export type AnimationType =
-  | 'push'
-  | 'pull'
-  | 'squat'
-  | 'curl'
-  | 'extend'
-  | 'static'
-  | 'cardio'
-  | 'stretch'
-
-export interface AnimationConfig {
-  armAngle?: number
-  bodyAngle?: number
-  hasEquipment?: boolean
-  equipmentType?: 'barbell' | 'dumbbell' | 'machine' | 'bodyweight' | 'cable'
-}
-
 export interface ExerciseDefinition {
   id: string
   name: string
@@ -111,8 +100,6 @@ export interface ExerciseDefinition {
   commonMistakes: string[]
   isCustom: boolean
   createdAt: string
-  animationType: AnimationType
-  animationConfig?: AnimationConfig
 }
 
 export interface PersonalRecord {
@@ -128,4 +115,12 @@ export interface ExerciseStats {
   totalSets: number
   totalVolume: number
   lastTrained: string | null
+}
+
+export type ToastType = 'success' | 'error' | 'info'
+
+export interface ToastMessage {
+  id: string
+  type: ToastType
+  message: string
 }

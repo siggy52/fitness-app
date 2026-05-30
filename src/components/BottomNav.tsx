@@ -1,38 +1,66 @@
-import { NavLink } from 'react-router-dom'
-import { Home, Calendar, Dumbbell, Apple, User, BookOpen } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Home, Calendar, Plus, PieChart, User } from 'lucide-react'
 
-const navItems = [
-  { path: '/home', label: '首页', icon: Home },
-  { path: '/plan', label: '计划', icon: Calendar },
-  { path: '/exercises', label: '动作库', icon: BookOpen },
-  { path: '/workout', label: '训练', icon: Dumbbell },
-  { path: '/nutrition', label: '饮食', icon: Apple },
-  { path: '/profile', label: '我的', icon: User },
+const NAV_ITEMS = [
+  { path: '/home', icon: Home, label: '首页' },
+  { path: '/plan', icon: Calendar, label: '计划' },
+  { path: '/workout', icon: Plus, label: '训练', isFab: true },
+  { path: '/dashboard', icon: PieChart, label: '统计' },
+  { path: '/profile', icon: User, label: '我的' },
 ]
 
 export default function BottomNav() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const currentPath = location.pathname
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-      <div className="flex justify-around items-center h-16">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center px-3 py-1 transition-all ${
-                isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <item.icon className={`w-6 h-6 ${isActive ? 'fill-current' : ''}`} />
-                <span className="text-xs mt-1 font-medium">{item.label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
-      </div>
-    </nav>
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+      <nav
+        className="flex items-center gap-2 px-3 h-[70px] rounded-[35px]"
+        style={{
+          background: 'rgba(26,26,26,0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.3)',
+        }}
+      >
+        {NAV_ITEMS.map((item) => {
+          const isActive = currentPath === item.path
+
+          if (item.isFab) {
+            return (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className="fab mx-1"
+                aria-label={item.label}
+              >
+                <Plus className="w-7 h-7 text-black" strokeWidth={2.5} />
+              </button>
+            )
+          }
+
+          return (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`
+                w-[50px] h-[50px] rounded-[25px] flex items-center justify-center
+                transition-all duration-300 ease-out
+                ${isActive
+                  ? 'bg-neon text-dark-bg'
+                  : 'text-dark-muted hover:text-white'
+                }
+              `}
+              aria-label={item.label}
+            >
+              <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
+            </button>
+          )
+        })}
+      </nav>
+    </div>
   )
 }

@@ -1,0 +1,143 @@
+{
+  "passed": [
+    {
+      "category": "页面导航",
+      "name": "首页加载",
+      "status": "PASS",
+      "detail": "5159ms",
+      "time": "2026-05-28T16:03:31.292Z"
+    }
+  ],
+  "failed": [
+    {
+      "category": "页面导航",
+      "name": "动作库页面",
+      "status": "FAIL",
+      "detail": "page.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=动作库')\u001b[22m\n",
+      "time": "2026-05-28T16:03:36.295Z"
+    },
+    {
+      "category": "页面导航",
+      "name": "动作库页面(URL)",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/exercises\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/exercises\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:39.368Z"
+    },
+    {
+      "category": "页面导航",
+      "name": "动作详情页",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/exercises\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/exercises\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:39.506Z"
+    },
+    {
+      "category": "页面导航",
+      "name": "运动页面",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/workout\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/workout\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:42.068Z"
+    },
+    {
+      "category": "功能操作",
+      "name": "打开动作选择器",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/workout\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/workout\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:44.995Z"
+    },
+    {
+      "category": "功能操作",
+      "name": "搜索动作",
+      "status": "FAIL",
+      "detail": "page.$: Execution context was destroyed, most likely because of a navigation",
+      "time": "2026-05-28T16:03:45.019Z"
+    },
+    {
+      "category": "功能操作",
+      "name": "从计划添加",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/workout\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/workout\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:45.207Z"
+    },
+    {
+      "category": "移动端适配",
+      "name": "首页加载",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:48.083Z"
+    },
+    {
+      "category": "移动端适配",
+      "name": "运动页面",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/workout\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/workout\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:48.266Z"
+    },
+    {
+      "category": "移动端适配",
+      "name": "动作库页面",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/exercises\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/exercises\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:50.449Z"
+    },
+    {
+      "category": "移动端适配",
+      "name": "历史记录页面",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/history\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/history\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:50.712Z"
+    },
+    {
+      "category": "错误处理",
+      "name": "无效路由",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/nonexistent-route\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/nonexistent-route\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:53.339Z"
+    },
+    {
+      "category": "错误处理",
+      "name": "无效动作ID",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/exercises/invalid-id-12345\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/exercises/invalid-id-12345\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:53.593Z"
+    },
+    {
+      "category": "错误处理",
+      "name": "空训练状态",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/workout\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/workout\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:55.681Z"
+    },
+    {
+      "category": "平板适配",
+      "name": "首页加载",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:58.281Z"
+    },
+    {
+      "category": "平板适配",
+      "name": "运动页面",
+      "status": "FAIL",
+      "detail": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/workout\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/workout\", waiting until \"networkidle\"\u001b[22m\n",
+      "time": "2026-05-28T16:03:58.539Z"
+    }
+  ],
+  "skipped": [
+    {
+      "category": "功能操作",
+      "name": "选择动作",
+      "status": "SKIP",
+      "detail": "未找到可选择的动作项",
+      "time": "2026-05-28T16:03:45.141Z"
+    }
+  ],
+  "startTime": "2026-05-28T16:03:23.554Z",
+  "endTime": "2026-05-28T16:03:59.587Z",
+  "pages": {
+    "home": {
+      "domContentLoaded": "1760",
+      "loadComplete": "1762",
+      "domInteractive": "656"
+    }
+  }
+}
